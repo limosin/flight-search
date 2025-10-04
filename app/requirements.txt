@@ -1,0 +1,13 @@
+# FastAPI Flight Search Service
+
+fastapi[standard]>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.4.0
+pydantic-settings>=2.0.0
+
+# Database
+sqlalchemy>=2.0.0
+pytz>=2023.3
+
+# Optional but recommended
+python-dotenv>=1.0.0
