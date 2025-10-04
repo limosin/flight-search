@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl \"https://www.cleartrip.com/flight/search/v2?from=BOM&source_header=BOM&to=DEL&destination_header=DEL&depart_date=14%2F10%2F2025&class=Economy&adults=1&childs=0&infants=0&mobileApp=true&intl=n&responseType=jsonV3&source=DESKTOP&utm_currency=INR&sft=&return_date=&carrier=&cfw=false&multiFare=true&isFFSC=true\")",
+      "Bash(chmod:*)",
+      "Bash(./download_flights.sh)",
+      "Bash(./extract_stats.sh)",
+      "Bash(./download_flights_extended.sh:*)",
+      "Bash(python3:*)",
+      "Bash(pip3 install:*)",
+      "Bash(open routes_map.html)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

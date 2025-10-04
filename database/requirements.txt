@@ -1,0 +1,13 @@
+# Flight Search System - Database Requirements
+
+# Core dependencies
+sqlalchemy>=2.0.0
+pytz>=2023.3
+
+# Optional but recommended
+psycopg2-binary>=2.9.0  # For PostgreSQL
+python-dotenv>=1.0.0     # For environment variables
+
+# Development dependencies
+pytest>=7.4.0            # For testing
+pytest-cov>=4.1.0        # For test coverage
