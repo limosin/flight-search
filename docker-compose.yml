@@ -1,0 +1,52 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: flight-search-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///flight_search.db
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Mount database file to persist data
+      - ./flight_search.db:/app/flight_search.db
+      # Optional: mount app code for development (hot reload)
+      # - ./app:/app/app
+    networks:
+      - flight-search-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: flight-search-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - flight-search-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  flight-search-network:
+    driver: bridge
+
+volumes:
+  flight-search-db:
+    driver: local

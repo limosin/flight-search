@@ -1,0 +1,62 @@
+# Git
+.git
+.gitignore
+.github
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+.npm
+.yarn
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test and coverage
+.pytest_cache
+.coverage
+htmlcov/
+*.cover
+
+# Documentation
+*.md
+!README.md
+
+# Data files (except database)
+flights-data/api-results/
+flights-data/scripts/
+
+# Database ingestion scripts (not needed in container)
+database/ingestion/
+database/migrations/
+database/README.md
+database/requirements.txt
+database/MODELS_DIAGRAM.md
+
+# Development scripts
+start.sh
+test_*.py
+SEARCH_PERFORMANCE_ANALYSIS.md
