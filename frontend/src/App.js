@@ -15,8 +15,28 @@ function App() {
     setSearchResults(null);
 
     try {
-      const response = await axios.post('/v1/search', searchParams);
-      setSearchResults(response.data);
+      // Separate stop filters from API params
+      const { stopFilters, ...apiParams } = searchParams;
+      
+      const response = await axios.post('/v1/search', apiParams);
+      
+      // Filter results based on stop filters
+      let filteredItineraries = response.data.itineraries || [];
+      
+      if (stopFilters) {
+        filteredItineraries = filteredItineraries.filter(itinerary => {
+          const stops = itinerary.stops;
+          if (stops === 0 && stopFilters.direct) return true;
+          if (stops === 1 && stopFilters.oneStop) return true;
+          if (stops === 2 && stopFilters.twoStops) return true;
+          return false;
+        });
+      }
+      
+      setSearchResults({
+        ...response.data,
+        itineraries: filteredItineraries
+      });
     } catch (err) {
       setError(
         err.response?.data?.detail || 

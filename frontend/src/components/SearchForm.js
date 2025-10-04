@@ -13,6 +13,12 @@ const SearchForm = ({ onSearch, loading }) => {
     sort: 'price'
   });
 
+  const [stopFilters, setStopFilters] = useState({
+    direct: true,
+    oneStop: true,
+    twoStops: true
+  });
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     
@@ -24,9 +30,17 @@ const SearchForm = ({ onSearch, loading }) => {
     }));
   };
 
+  const handleStopFilterChange = (e) => {
+    const { name, checked } = e.target;
+    setStopFilters(prev => ({
+      ...prev,
+      [name]: checked
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSearch(formData);
+    onSearch({ ...formData, stopFilters });
   };
 
   return (
@@ -100,18 +114,37 @@ const SearchForm = ({ onSearch, loading }) => {
           </select>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="max_hops">Maximum Stops</label>
-          <select
-            id="max_hops"
-            name="max_hops"
-            value={formData.max_hops}
-            onChange={handleChange}
-          >
-            <option value="0">Direct (0 stops)</option>
-            <option value="1">1 stop</option>
-            <option value="2">2 stops</option>
-          </select>
+        <div className="form-group stops-filter">
+          <label>Number of Stops</label>
+          <div className="checkbox-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="direct"
+                checked={stopFilters.direct}
+                onChange={handleStopFilterChange}
+              />
+              <span>Direct</span>
+            </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="oneStop"
+                checked={stopFilters.oneStop}
+                onChange={handleStopFilterChange}
+              />
+              <span>1 Stop</span>
+            </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="twoStops"
+                checked={stopFilters.twoStops}
+                onChange={handleStopFilterChange}
+              />
+              <span>2 Stops</span>
+            </label>
+          </div>
         </div>
 
         <div className="form-group">

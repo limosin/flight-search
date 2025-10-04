@@ -44,6 +44,34 @@
   text-transform: uppercase;
 }
 
+.checkbox-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+
+.checkbox-label span {
+  font-weight: 400;
+  font-size: 0.95rem;
+}
+
+.stops-filter {
+  grid-column: span 2;
+}
+
 .search-button {
   width: 100%;
   padding: 1rem 2rem;
