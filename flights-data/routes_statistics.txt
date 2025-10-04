@@ -1,0 +1,238 @@
+FLIGHT STATISTICS - OCTOBER 10, 2025
+====================================
+
+COMPREHENSIVE NETWORK ANALYSIS
+Airports: 11 total (6 metros + 5 tier-1 cities)
+
+METRO AIRPORTS: Delhi (DEL), Mumbai (BOM), Bangalore (BLR), Chennai (MAA), Kolkata (CCU), Hyderabad (HYD)
+TIER-1 CITIES: Ahmedabad (AMD), Pune (PNQ), Goa (GOI), Kochi (COK), Jaipur (JAI)
+
+================================================================================
+PART 1: AIRPORT-WISE STATISTICS
+================================================================================
+
+DELHI (DEL) - 10 ROUTES:
+------------------------
+  DEL -> BOM   : 223 flights (53 direct, 170 connecting)
+  DEL -> BLR   : 198 flights (43 direct, 155 connecting)
+  DEL -> HYD   : 164 flights (29 direct, 135 connecting)
+  DEL -> MAA   : 140 flights (23 direct, 117 connecting)
+  DEL -> GOI   : 134 flights (19 direct, 115 connecting)
+  DEL -> COK   : 113 flights (9 direct, 104 connecting)
+  DEL -> CCU   : 104 flights (26 direct, 78 connecting)
+  DEL -> AMD   : 68 flights (21 direct, 47 connecting)
+  DEL -> PNQ   : 63 flights (22 direct, 41 connecting)
+  DEL -> JAI   : 37 flights (5 direct, 32 connecting)
+  TOTAL        : 1,244 flights (250 direct, 994 connecting)
+
+MUMBAI (BOM) - 10 ROUTES:
+-------------------------
+  BOM -> DEL   : 194 flights (54 direct, 140 connecting)
+  BOM -> HYD   : 167 flights (19 direct, 148 connecting)
+  BOM -> PNQ   : 146 flights (0 direct, 146 connecting)
+  BOM -> GOI   : 122 flights (20 direct, 102 connecting)
+  BOM -> BLR   : 118 flights (30 direct, 88 connecting)
+  BOM -> CCU   : 117 flights (16 direct, 101 connecting)
+  BOM -> AMD   : 110 flights (16 direct, 94 connecting)
+  BOM -> MAA   : 90 flights (18 direct, 72 connecting)
+  BOM -> COK   : 62 flights (10 direct, 52 connecting)
+  BOM -> JAI   : 37 flights (9 direct, 28 connecting)
+  TOTAL        : 1,163 flights (192 direct, 971 connecting)
+
+BANGALORE (BLR) - 10 ROUTES:
+----------------------------
+  BLR -> DEL   : 208 flights (43 direct, 165 connecting)
+  BLR -> BOM   : 120 flights (31 direct, 89 connecting)
+  BLR -> PNQ   : 104 flights (14 direct, 90 connecting)
+  BLR -> GOI   : 103 flights (14 direct, 89 connecting)
+  BLR -> CCU   : 90 flights (16 direct, 74 connecting)
+  BLR -> AMD   : 85 flights (9 direct, 76 connecting)
+  BLR -> HYD   : 76 flights (18 direct, 58 connecting)
+  BLR -> JAI   : 66 flights (6 direct, 60 connecting)
+  BLR -> MAA   : 59 flights (14 direct, 45 connecting)
+  BLR -> COK   : 35 flights (11 direct, 24 connecting)
+  TOTAL        : 946 flights (176 direct, 770 connecting)
+
+CHENNAI (MAA) - 10 ROUTES:
+--------------------------
+  MAA -> DEL   : 144 flights (23 direct, 121 connecting)
+  MAA -> BOM   : 110 flights (18 direct, 92 connecting)
+  MAA -> CCU   : 107 flights (6 direct, 101 connecting)
+  MAA -> AMD   : 102 flights (2 direct, 100 connecting)
+  MAA -> GOI   : 91 flights (2 direct, 89 connecting)
+  MAA -> PNQ   : 91 flights (8 direct, 83 connecting)
+  MAA -> HYD   : 85 flights (14 direct, 71 connecting)
+  MAA -> JAI   : 57 flights (1 direct, 56 connecting)
+  MAA -> BLR   : 54 flights (14 direct, 40 connecting)
+  MAA -> COK   : 50 flights (7 direct, 43 connecting)
+  TOTAL        : 891 flights (95 direct, 796 connecting)
+
+KOLKATA (CCU) - 10 ROUTES:
+--------------------------
+  CCU -> BOM   : 161 flights (16 direct, 145 connecting)
+  CCU -> BLR   : 147 flights (16 direct, 131 connecting)
+  CCU -> HYD   : 141 flights (8 direct, 133 connecting)
+  CCU -> DEL   : 113 flights (25 direct, 88 connecting)
+  CCU -> MAA   : 110 flights (6 direct, 104 connecting)
+  CCU -> GOI   : 92 flights (2 direct, 90 connecting)
+  CCU -> AMD   : 87 flights (6 direct, 81 connecting)
+  CCU -> PNQ   : 78 flights (4 direct, 74 connecting)
+  CCU -> COK   : 77 flights (0 direct, 77 connecting)
+  CCU -> JAI   : 37 flights (4 direct, 33 connecting)
+  TOTAL        : 1,043 flights (87 direct, 956 connecting)
+
+HYDERABAD (HYD) - 10 ROUTES:
+----------------------------
+  HYD -> DEL   : 144 flights (29 direct, 115 connecting)
+  HYD -> BOM   : 135 flights (19 direct, 116 connecting)
+  HYD -> HYD   : 123 flights (6 direct, 117 connecting)
+  HYD -> CCU   : 123 flights (8 direct, 115 connecting)
+  HYD -> PNQ   : 94 flights (5 direct, 89 connecting)
+  HYD -> GOI   : 90 flights (12 direct, 78 connecting)
+  HYD -> COK   : 82 flights (7 direct, 75 connecting)
+  HYD -> BLR   : 75 flights (18 direct, 57 connecting)
+  HYD -> MAA   : 71 flights (14 direct, 57 connecting)
+  HYD -> JAI   : 41 flights (6 direct, 35 connecting)
+  TOTAL        : 978 flights (124 direct, 854 connecting)
+
+AHMEDABAD (AMD) - 8 ROUTES:
+---------------------------
+  AMD -> BOM   : 111 flights (16 direct, 95 connecting)
+  AMD -> HYD   : 110 flights (6 direct, 104 connecting)
+  AMD -> BLR   : 80 flights (9 direct, 71 connecting)
+  AMD -> MAA   : 84 flights (2 direct, 82 connecting)
+  AMD -> CCU   : 82 flights (6 direct, 76 connecting)
+  AMD -> DEL   : 76 flights (22 direct, 54 connecting)
+  AMD -> PNQ   : 69 flights (6 direct, 63 connecting)
+  AMD -> JAI   : 25 flights (4 direct, 21 connecting)
+  TOTAL        : 637 flights (71 direct, 566 connecting)
+
+PUNE (PNQ) - 9 ROUTES:
+----------------------
+  PNQ -> BOM   : 130 flights (0 direct, 130 connecting)
+  PNQ -> BLR   : 90 flights (14 direct, 76 connecting)
+  PNQ -> HYD   : 89 flights (6 direct, 83 connecting)
+  PNQ -> DEL   : 73 flights (23 direct, 50 connecting)
+  PNQ -> CCU   : 70 flights (4 direct, 66 connecting)
+  PNQ -> AMD   : 61 flights (5 direct, 56 connecting)
+  PNQ -> MAA   : 58 flights (8 direct, 50 connecting)
+  PNQ -> GOI   : 55 flights (5 direct, 50 connecting)
+  PNQ -> JAI   : 18 flights (3 direct, 15 connecting)
+  TOTAL        : 644 flights (68 direct, 576 connecting)
+
+GOA (GOI) - 8 ROUTES:
+---------------------
+  GOI -> DEL   : 181 flights (19 direct, 162 connecting)
+  GOI -> MAA   : 110 flights (2 direct, 108 connecting)
+  GOI -> BLR   : 108 flights (14 direct, 94 connecting)
+  GOI -> CCU   : 90 flights (2 direct, 88 connecting)
+  GOI -> HYD   : 81 flights (12 direct, 69 connecting)
+  GOI -> COK   : 76 flights (1 direct, 75 connecting)
+  GOI -> BOM   : 71 flights (21 direct, 50 connecting)
+  GOI -> PNQ   : 64 flights (5 direct, 59 connecting)
+  TOTAL        : 781 flights (76 direct, 705 connecting)
+
+KOCHI (COK) - 7 ROUTES:
+-----------------------
+  COK -> DEL   : 116 flights (9 direct, 107 connecting)
+  COK -> BOM   : 86 flights (10 direct, 76 connecting)
+  COK -> GOI   : 84 flights (1 direct, 83 connecting)
+  COK -> HYD   : 72 flights (7 direct, 65 connecting)
+  COK -> CCU   : 74 flights (0 direct, 74 connecting)
+  COK -> MAA   : 51 flights (7 direct, 44 connecting)
+  COK -> BLR   : 39 flights (11 direct, 28 connecting)
+  TOTAL        : 522 flights (45 direct, 477 connecting)
+
+JAIPUR (JAI) - 8 ROUTES:
+------------------------
+  JAI -> BLR   : 77 flights (6 direct, 71 connecting)
+  JAI -> MAA   : 55 flights (1 direct, 54 connecting)
+  JAI -> BOM   : 53 flights (9 direct, 44 connecting)
+  JAI -> DEL   : 52 flights (5 direct, 47 connecting)
+  JAI -> HYD   : 41 flights (6 direct, 35 connecting)
+  JAI -> CCU   : 38 flights (4 direct, 34 connecting)
+  JAI -> AMD   : 28 flights (4 direct, 24 connecting)
+  JAI -> PNQ   : 23 flights (3 direct, 20 connecting)
+  TOTAL        : 367 flights (38 direct, 329 connecting)
+
+================================================================================
+PART 2: OVERALL SUMMARY
+================================================================================
+
+Total Routes       : 100
+Total Flights      : 9,216
+Total Direct       : 1,222 (13.3%)
+Total Connecting   : 7,994 (86.7%)
+
+BREAKDOWN BY CATEGORY:
+----------------------
+Metro ↔ Metro       : 30 routes | 3,788 flights | 667 direct (17.6%)
+Metro ↔ Tier-1      : 60 routes | 4,644 flights | 507 direct (10.9%)
+Tier-1 ↔ Tier-1     : 10 routes | 784 flights | 48 direct (6.1%)
+
+TOP 10 ROUTES BY TOTAL FLIGHTS:
+--------------------------------
+1. DEL -> BOM : 223 flights (53 direct)
+2. BLR -> DEL : 208 flights (43 direct)
+3. DEL -> BLR : 198 flights (43 direct)
+4. BOM -> DEL : 194 flights (54 direct)
+5. GOI -> DEL : 181 flights (19 direct)
+6. BOM -> HYD : 167 flights (19 direct)
+7. DEL -> HYD : 164 flights (29 direct)
+8. CCU -> BOM : 161 flights (16 direct)
+9. CCU -> BLR : 147 flights (16 direct)
+10. BOM -> PNQ : 146 flights (0 direct)
+
+TOP 10 ROUTES BY DIRECT FLIGHTS:
+---------------------------------
+1. BOM -> DEL : 54 direct flights
+2. DEL -> BOM : 53 direct flights
+3. BLR -> DEL : 43 direct flights
+4. DEL -> BLR : 43 direct flights
+5. BLR -> BOM : 31 direct flights
+6. BOM -> BLR : 30 direct flights
+7. HYD -> DEL : 29 direct flights
+8. DEL -> HYD : 29 direct flights
+9. CCU -> DEL : 25 direct flights
+10. DEL -> CCU : 26 direct flights
+
+BUSIEST AIRPORTS (by total departures):
+----------------------------------------
+1. Delhi (DEL)      : 1,244 flights
+2. Mumbai (BOM)     : 1,163 flights
+3. Kolkata (CCU)    : 1,043 flights
+4. Hyderabad (HYD)  : 978 flights
+5. Bangalore (BLR)  : 946 flights
+6. Chennai (MAA)    : 891 flights
+7. Goa (GOI)        : 781 flights
+8. Pune (PNQ)       : 644 flights
+9. Ahmedabad (AMD)  : 637 flights
+10. Kochi (COK)     : 522 flights
+11. Jaipur (JAI)    : 367 flights
+
+CARRIERS OPERATING:
+-------------------
+Major carriers across routes: 
+- 6E (IndiGo)
+- AI (Air India)  
+- IX (Air India Express)
+- QP (Akasa Air)
+- SG (SpiceJet)
+- 9I (Alliance Air)
+- IC (IndiGo Codeshare)
+- S5 (Unknown)
+- UK (Vistara - merged with AI)
+
+ROUTE DENSITY:
+--------------
+- Metros have highest connectivity (10 routes each)
+- Tier-1 cities: AMD (8), PNQ (9), GOI (8), COK (7), JAI (8)
+- Average flights per route: 92.2
+- Average direct flights per route: 12.2
+
+CONNECTING PATTERNS:
+--------------------
+- Tier-1 to Tier-1 routes heavily depend on connecting flights (93.9% connecting)
+- Metro to Metro routes have best direct connectivity (22.4% direct)
+- Delhi-Mumbai corridor is the busiest with 417 total flights
+- Bangalore-Delhi is second busiest with 406 total flights

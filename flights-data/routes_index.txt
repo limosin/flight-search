@@ -1,0 +1,141 @@
+FLIGHT DATA INDEX - OCTOBER 10, 2025
+====================================
+
+Downloaded: 100 route combinations
+Date: October 10, 2025
+Airports: 11 total (6 metros + 5 tier-1 cities)
+
+METRO AIRPORTS: DEL, BOM, BLR, MAA, CCU, HYD
+TIER-1 CITIES: AMD, PNQ, GOI, COK, JAI
+
+FILES (100 total):
+------------------
+
+FROM DELHI (DEL) - 10 routes:
+  flights_DEL_BOM_20251010.json - Delhi to Mumbai
+  flights_DEL_BLR_20251010.json - Delhi to Bangalore
+  flights_DEL_MAA_20251010.json - Delhi to Chennai
+  flights_DEL_CCU_20251010.json - Delhi to Kolkata
+  flights_DEL_HYD_20251010.json - Delhi to Hyderabad
+  flights_DEL_AMD_20251010.json - Delhi to Ahmedabad
+  flights_DEL_PNQ_20251010.json - Delhi to Pune
+  flights_DEL_GOI_20251010.json - Delhi to Goa
+  flights_DEL_COK_20251010.json - Delhi to Kochi
+  flights_DEL_JAI_20251010.json - Delhi to Jaipur
+
+FROM MUMBAI (BOM) - 10 routes:
+  flights_BOM_DEL_20251010.json - Mumbai to Delhi
+  flights_BOM_BLR_20251010.json - Mumbai to Bangalore
+  flights_BOM_MAA_20251010.json - Mumbai to Chennai
+  flights_BOM_CCU_20251010.json - Mumbai to Kolkata
+  flights_BOM_HYD_20251010.json - Mumbai to Hyderabad
+  flights_BOM_AMD_20251010.json - Mumbai to Ahmedabad
+  flights_BOM_PNQ_20251010.json - Mumbai to Pune
+  flights_BOM_GOI_20251010.json - Mumbai to Goa
+  flights_BOM_COK_20251010.json - Mumbai to Kochi
+  flights_BOM_JAI_20251010.json - Mumbai to Jaipur
+
+FROM BANGALORE (BLR) - 10 routes:
+  flights_BLR_DEL_20251010.json - Bangalore to Delhi
+  flights_BLR_BOM_20251010.json - Bangalore to Mumbai
+  flights_BLR_MAA_20251010.json - Bangalore to Chennai
+  flights_BLR_CCU_20251010.json - Bangalore to Kolkata
+  flights_BLR_HYD_20251010.json - Bangalore to Hyderabad
+  flights_BLR_AMD_20251010.json - Bangalore to Ahmedabad
+  flights_BLR_PNQ_20251010.json - Bangalore to Pune
+  flights_BLR_GOI_20251010.json - Bangalore to Goa
+  flights_BLR_COK_20251010.json - Bangalore to Kochi
+  flights_BLR_JAI_20251010.json - Bangalore to Jaipur
+
+FROM CHENNAI (MAA) - 10 routes:
+  flights_MAA_DEL_20251010.json - Chennai to Delhi
+  flights_MAA_BOM_20251010.json - Chennai to Mumbai
+  flights_MAA_BLR_20251010.json - Chennai to Bangalore
+  flights_MAA_CCU_20251010.json - Chennai to Kolkata
+  flights_MAA_HYD_20251010.json - Chennai to Hyderabad
+  flights_MAA_AMD_20251010.json - Chennai to Ahmedabad
+  flights_MAA_PNQ_20251010.json - Chennai to Pune
+  flights_MAA_GOI_20251010.json - Chennai to Goa
+  flights_MAA_COK_20251010.json - Chennai to Kochi
+  flights_MAA_JAI_20251010.json - Chennai to Jaipur
+
+FROM KOLKATA (CCU) - 10 routes:
+  flights_CCU_DEL_20251010.json - Kolkata to Delhi
+  flights_CCU_BOM_20251010.json - Kolkata to Mumbai
+  flights_CCU_BLR_20251010.json - Kolkata to Bangalore
+  flights_CCU_MAA_20251010.json - Kolkata to Chennai
+  flights_CCU_HYD_20251010.json - Kolkata to Hyderabad
+  flights_CCU_AMD_20251010.json - Kolkata to Ahmedabad
+  flights_CCU_PNQ_20251010.json - Kolkata to Pune
+  flights_CCU_GOI_20251010.json - Kolkata to Goa
+  flights_CCU_COK_20251010.json - Kolkata to Kochi
+  flights_CCU_JAI_20251010.json - Kolkata to Jaipur
+
+FROM HYDERABAD (HYD) - 10 routes:
+  flights_HYD_DEL_20251010.json - Hyderabad to Delhi
+  flights_HYD_BOM_20251010.json - Hyderabad to Mumbai
+  flights_HYD_BLR_20251010.json - Hyderabad to Bangalore
+  flights_HYD_MAA_20251010.json - Hyderabad to Chennai
+  flights_HYD_CCU_20251010.json - Hyderabad to Kolkata
+  flights_HYD_AMD_20251010.json - Hyderabad to Ahmedabad
+  flights_HYD_PNQ_20251010.json - Hyderabad to Pune
+  flights_HYD_GOI_20251010.json - Hyderabad to Goa
+  flights_HYD_COK_20251010.json - Hyderabad to Kochi
+  flights_HYD_JAI_20251010.json - Hyderabad to Jaipur
+
+FROM AHMEDABAD (AMD) - 9 routes:
+  flights_AMD_DEL_20251010.json - Ahmedabad to Delhi
+  flights_AMD_BOM_20251010.json - Ahmedabad to Mumbai
+  flights_AMD_BLR_20251010.json - Ahmedabad to Bangalore
+  flights_AMD_MAA_20251010.json - Ahmedabad to Chennai
+  flights_AMD_CCU_20251010.json - Ahmedabad to Kolkata
+  flights_AMD_HYD_20251010.json - Ahmedabad to Hyderabad
+  flights_AMD_PNQ_20251010.json - Ahmedabad to Pune
+  flights_AMD_JAI_20251010.json - Ahmedabad to Jaipur
+
+FROM PUNE (PNQ) - 9 routes:
+  flights_PNQ_DEL_20251010.json - Pune to Delhi
+  flights_PNQ_BOM_20251010.json - Pune to Mumbai
+  flights_PNQ_BLR_20251010.json - Pune to Bangalore
+  flights_PNQ_MAA_20251010.json - Pune to Chennai
+  flights_PNQ_CCU_20251010.json - Pune to Kolkata
+  flights_PNQ_HYD_20251010.json - Pune to Hyderabad
+  flights_PNQ_AMD_20251010.json - Pune to Ahmedabad
+  flights_PNQ_GOI_20251010.json - Pune to Goa
+  flights_PNQ_JAI_20251010.json - Pune to Jaipur
+
+FROM GOA (GOI) - 8 routes:
+  flights_GOI_DEL_20251010.json - Goa to Delhi
+  flights_GOI_BOM_20251010.json - Goa to Mumbai
+  flights_GOI_BLR_20251010.json - Goa to Bangalore
+  flights_GOI_MAA_20251010.json - Goa to Chennai
+  flights_GOI_CCU_20251010.json - Goa to Kolkata
+  flights_GOI_HYD_20251010.json - Goa to Hyderabad
+  flights_GOI_PNQ_20251010.json - Goa to Pune
+  flights_GOI_COK_20251010.json - Goa to Kochi
+
+FROM KOCHI (COK) - 7 routes:
+  flights_COK_DEL_20251010.json - Kochi to Delhi
+  flights_COK_BOM_20251010.json - Kochi to Mumbai
+  flights_COK_BLR_20251010.json - Kochi to Bangalore
+  flights_COK_MAA_20251010.json - Kochi to Chennai
+  flights_COK_CCU_20251010.json - Kochi to Kolkata
+  flights_COK_HYD_20251010.json - Kochi to Hyderabad
+  flights_COK_GOI_20251010.json - Kochi to Goa
+
+FROM JAIPUR (JAI) - 8 routes:
+  flights_JAI_DEL_20251010.json - Jaipur to Delhi
+  flights_JAI_BOM_20251010.json - Jaipur to Mumbai
+  flights_JAI_BLR_20251010.json - Jaipur to Bangalore
+  flights_JAI_MAA_20251010.json - Jaipur to Chennai
+  flights_JAI_CCU_20251010.json - Jaipur to Kolkata
+  flights_JAI_HYD_20251010.json - Jaipur to Hyderabad
+  flights_JAI_AMD_20251010.json - Jaipur to Ahmedabad
+  flights_JAI_PNQ_20251010.json - Jaipur to Pune
+
+CATEGORY BREAKDOWN:
+-------------------
+Metro ↔ Metro: 30 routes
+Metro ↔ Tier-1: 60 routes
+Tier-1 ↔ Tier-1: 10 routes
+TOTAL: 100 routes

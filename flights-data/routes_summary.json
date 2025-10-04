@@ -1,0 +1,806 @@
+{
+  "generatedDate": "2025-10-04T12:36:00Z",
+  "travelDate": "2025-10-10",
+  "routes": {
+    "AMD_BLR": {
+      "origin": "AMD",
+      "destination": "BLR",
+      "totalFlights": 80,
+      "directFlights": 9,
+      "carriers": "6E, AI, IX, QP",
+      "layoverAirports": "BOM, DEL, GOI, GOX, HYD, ISK, PNQ"
+    }    ,
+    "AMD_BOM": {
+      "origin": "AMD",
+      "destination": "BOM",
+      "totalFlights": 111,
+      "directFlights": 16,
+      "carriers": "6E, AI, QP",
+      "layoverAirports": "BLR, DEL, GOX, IDR"
+    }    ,
+    "AMD_CCU": {
+      "origin": "AMD",
+      "destination": "CCU",
+      "totalFlights": 82,
+      "directFlights": 6,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "BLR, BOM, DEL, IDR, IXR, LKO, PAT, RPR, VNS"
+    }    ,
+    "AMD_DEL": {
+      "origin": "AMD",
+      "destination": "DEL",
+      "totalFlights": 76,
+      "directFlights": 22,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "BLR, BOM, GOX, IDR, JAI"
+    }    ,
+    "AMD_HYD": {
+      "origin": "AMD",
+      "destination": "HYD",
+      "totalFlights": 110,
+      "directFlights": 6,
+      "carriers": "6E, AI, IX, QP",
+      "layoverAirports": "BLR, BOM, DEL, IDR, PNQ"
+    }    ,
+    "AMD_JAI": {
+      "origin": "AMD",
+      "destination": "JAI",
+      "totalFlights": 25,
+      "directFlights": 4,
+      "carriers": "6E, AI",
+      "layoverAirports": "BOM, DEL, IDR"
+    }    ,
+    "AMD_MAA": {
+      "origin": "AMD",
+      "destination": "MAA",
+      "totalFlights": 84,
+      "directFlights": 2,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, BOM, DEL, GOX, HYD, PNQ"
+    }    ,
+    "AMD_PNQ": {
+      "origin": "AMD",
+      "destination": "PNQ",
+      "totalFlights": 69,
+      "directFlights": 6,
+      "carriers": "6E, AI, IX, QP, S5",
+      "layoverAirports": "BLR, DEL, IDR"
+    }    ,
+    "BLR_AMD": {
+      "origin": "BLR",
+      "destination": "AMD",
+      "totalFlights": 85,
+      "directFlights": 9,
+      "carriers": "6E, AI, IX, QP",
+      "layoverAirports": "BOM, DEL, GOI, GOX, HYD, ISK, PNQ"
+    }    ,
+    "BLR_BOM": {
+      "origin": "BLR",
+      "destination": "BOM",
+      "totalFlights": 120,
+      "directFlights": 31,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, CCJ, COK, DBR, DEL, GOI, GOX, HYD, IDR, IXE, JAI, MAA, NAG, TRV, VGA, VTZ"
+    }    ,
+    "BLR_CCU": {
+      "origin": "BLR",
+      "destination": "CCU",
+      "totalFlights": 90,
+      "directFlights": 16,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "BBI, BOM, DEL, GAU, GOI, HDO, HYD, IDR, IXB, IXR, IXZ, JAI, LKO, MAA, PAT, PNQ, RPR, VTZ"
+    }    ,
+    "BLR_COK": {
+      "origin": "BLR",
+      "destination": "COK",
+      "totalFlights": 35,
+      "directFlights": 11,
+      "carriers": "6E, 9I, AI, IX, QP",
+      "layoverAirports": "BOM, CCJ, HYD"
+    }    ,
+    "BLR_DEL": {
+      "origin": "BLR",
+      "destination": "DEL",
+      "totalFlights": 208,
+      "directFlights": 43,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, AYJ, BBI, BOM, CCU, CJB, COK, DBR, GOI, GOX, HYD, IDR, IXC, IXD, IXG, IXR, JAI, JDH, LKO, MAA, NAG, PAT, PNQ, STV, VGA, VNS"
+    }    ,
+    "BLR_GOI": {
+      "origin": "BLR",
+      "destination": "GOI",
+      "totalFlights": 103,
+      "directFlights": 14,
+      "carriers": "6E, 9I, AI, IX, QP",
+      "layoverAirports": "AMD, BOM, CJB, DEL, HYD"
+    }    ,
+    "BLR_HYD": {
+      "origin": "BLR",
+      "destination": "HYD",
+      "totalFlights": 76,
+      "directFlights": 18,
+      "carriers": "6E, 9I, AI, IX",
+      "layoverAirports": "BOM, CJB, COK, GOI, GOX, IXE, IXM, IXU, MAA, PNQ, RJA, TIR, VGA, VTZ"
+    }    ,
+    "BLR_JAI": {
+      "origin": "BLR",
+      "destination": "JAI",
+      "totalFlights": 66,
+      "directFlights": 6,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "AMD, BOM, CCU, DEL, GAU, HYD, IDR, LKO, MAA, PNQ, STV"
+    }    ,
+    "BLR_MAA": {
+      "origin": "BLR",
+      "destination": "MAA",
+      "totalFlights": 59,
+      "directFlights": 14,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BOM, CJB, COK, HYD, IXE, IXM, TRZ, VGA"
+    }    ,
+    "BLR_PNQ": {
+      "origin": "BLR",
+      "destination": "PNQ",
+      "totalFlights": 104,
+      "directFlights": 14,
+      "carriers": "6E, AI, IX, QP",
+      "layoverAirports": "COK, DEL, GOI, GOX, HYD, JAI, MAA"
+    }    ,
+    "BOM_AMD": {
+      "origin": "BOM",
+      "destination": "AMD",
+      "totalFlights": 110,
+      "directFlights": 16,
+      "carriers": "6E, AI, QP",
+      "layoverAirports": "DEL, GOX, IDR"
+    }    ,
+    "BOM_BLR": {
+      "origin": "BOM",
+      "destination": "BLR",
+      "totalFlights": 118,
+      "directFlights": 30,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, COK, DBR, DEL, GOI, GOX, HYD, IDR, IXE, MAA, RJA, TIR, TRV, VGA"
+    }    ,
+    "BOM_CCU": {
+      "origin": "BOM",
+      "destination": "CCU",
+      "totalFlights": 117,
+      "directFlights": 16,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, BLR, DED, DEL, GAU, GOX, HYD, IDR, IXC, JAI, JRG, MAA, RPR, VNS"
+    }    ,
+    "BOM_COK": {
+      "origin": "BOM",
+      "destination": "COK",
+      "totalFlights": 62,
+      "directFlights": 10,
+      "carriers": "6E, AI, IX, QP",
+      "layoverAirports": "BLR, CCJ, DEL, GOI, HYD, JAI"
+    }    ,
+    "BOM_DEL": {
+      "origin": "BOM",
+      "destination": "DEL",
+      "totalFlights": 194,
+      "directFlights": 54,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, ATQ, BBI, BDQ, BLR, CCU, COK, DBR, DED, GOI, GOX, HSR, HYD, IDR, IXC, IXE, IXR, JDH, LKO, MAA, NAG, PAT, UDR, VNS"
+    }    ,
+    "BOM_GOI": {
+      "origin": "BOM",
+      "destination": "GOI",
+      "totalFlights": 122,
+      "directFlights": 20,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, BDQ, BLR, DEL, HYD, IDR"
+    }    ,
+    "BOM_HYD": {
+      "origin": "BOM",
+      "destination": "HYD",
+      "totalFlights": 167,
+      "directFlights": 19,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, CNN, COK, DEL, GOI, GOX, HSR, IDR, IXU, JAI, MAA, RJA, RPR, TIR, UDR, VGA"
+    }    ,
+    "BOM_JAI": {
+      "origin": "BOM",
+      "destination": "JAI",
+      "totalFlights": 37,
+      "directFlights": 9,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "AMD, BLR, DEL, HYD, IDR"
+    }    ,
+    "BOM_MAA": {
+      "origin": "BOM",
+      "destination": "MAA",
+      "totalFlights": 90,
+      "directFlights": 18,
+      "carriers": "6E, AI, QP",
+      "layoverAirports": "AMD, BLR, CCU, CJB, COK, DEL, GOI, HYD, IDR, IXE"
+    }    ,
+    "BOM_PNQ": {
+      "origin": "BOM",
+      "destination": "PNQ",
+      "totalFlights": 146,
+      "directFlights": 0,
+      "carriers": "AI",
+      "layoverAirports": "BLR, COK, DEL, HYD, IDR, MAA"
+    }    ,
+    "CCU_AMD": {
+      "origin": "CCU",
+      "destination": "AMD",
+      "totalFlights": 87,
+      "directFlights": 6,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "BBI, BLR, BOM, DEL, IXR, LKO, PAT, RPR"
+    }    ,
+    "CCU_BLR": {
+      "origin": "CCU",
+      "destination": "BLR",
+      "totalFlights": 147,
+      "directFlights": 16,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "BBI, BOM, DEL, GAU, GOI, GOX, HDO, HYD, IMF, IXB, IXR, IXZ, JAI, MAA, PAT, PNQ, RPR, VNS"
+    }    ,
+    "CCU_BOM": {
+      "origin": "CCU",
+      "destination": "BOM",
+      "totalFlights": 161,
+      "directFlights": 16,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, BBI, BLR, DEL, GOI, HDO, HYD, IDR, IXR, LKO, MAA, RPR"
+    }    ,
+    "CCU_COK": {
+      "origin": "CCU",
+      "destination": "COK",
+      "totalFlights": 77,
+      "directFlights": 0,
+      "carriers": "6E, AI, IX, QP",
+      "layoverAirports": "BLR, BOM, DEL, HYD, MAA"
+    }    ,
+    "CCU_DEL": {
+      "origin": "CCU",
+      "destination": "DEL",
+      "totalFlights": 113,
+      "directFlights": 25,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "BBI, BLR, BOM, DGH, GAU, HYD, IXA, IXB, IXR, JAI, LKO, MAA, PAT, RPR, SXR, VNS"
+    }    ,
+    "CCU_GOI": {
+      "origin": "CCU",
+      "destination": "GOI",
+      "totalFlights": 92,
+      "directFlights": 2,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, BLR, BOM, DEL, HDO, HYD, IDR, MAA, PNQ, RPR"
+    }    ,
+    "CCU_HYD": {
+      "origin": "CCU",
+      "destination": "HYD",
+      "totalFlights": 141,
+      "directFlights": 8,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BBI, BLR, BOM, DEL, GAU, GOI, GOP, GOX, HDO, IXA, IXB, IXZ, JAI, MAA, PNQ, RPR, VNS, VTZ"
+    }    ,
+    "CCU_JAI": {
+      "origin": "CCU",
+      "destination": "JAI",
+      "totalFlights": 37,
+      "directFlights": 4,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, BOM, DEL, GAU, GOI, HDO, HYD, LKO"
+    }    ,
+    "CCU_MAA": {
+      "origin": "CCU",
+      "destination": "MAA",
+      "totalFlights": 110,
+      "directFlights": 6,
+      "carriers": "6E, AI, IX, QP",
+      "layoverAirports": "BBI, BLR, BOM, DEL, GAU, HDO, HYD, IDR, IXB, IXZ, PAT, PNQ, RPR"
+    }    ,
+    "CCU_PNQ": {
+      "origin": "CCU",
+      "destination": "PNQ",
+      "totalFlights": 78,
+      "directFlights": 4,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "BLR, DEL, HYD, IXR, NAG"
+    }    ,
+    "COK_BLR": {
+      "origin": "COK",
+      "destination": "BLR",
+      "totalFlights": 39,
+      "directFlights": 11,
+      "carriers": "6E, 9I, AI, IX",
+      "layoverAirports": "BOM, CCJ, HYD"
+    }    ,
+    "COK_BOM": {
+      "origin": "COK",
+      "destination": "BOM",
+      "totalFlights": 86,
+      "directFlights": 10,
+      "carriers": "6E, AI, IX, QP",
+      "layoverAirports": "BLR, CCJ, DEL, GOI, HYD, IDR, VNS"
+    }    ,
+    "COK_CCU": {
+      "origin": "COK",
+      "destination": "CCU",
+      "totalFlights": 74,
+      "directFlights": 0,
+      "carriers": "6E, AI, IX, QP",
+      "layoverAirports": "BLR, BOM, CCJ, DEL, HYD, MAA"
+    }    ,
+    "COK_DEL": {
+      "origin": "COK",
+      "destination": "DEL",
+      "totalFlights": 116,
+      "directFlights": 9,
+      "carriers": "6E, AI, IX, QP",
+      "layoverAirports": "BLR, BOM, CCJ, HYD, IDR, MAA, PNQ, VNS"
+    }    ,
+    "COK_GOI": {
+      "origin": "COK",
+      "destination": "GOI",
+      "totalFlights": 84,
+      "directFlights": 1,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, BOM, CCJ, DEL, HYD, MAA"
+    }    ,
+    "COK_HYD": {
+      "origin": "COK",
+      "destination": "HYD",
+      "totalFlights": 72,
+      "directFlights": 7,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, BOM, CCJ, CNN, DEL, PNQ"
+    }    ,
+    "COK_MAA": {
+      "origin": "COK",
+      "destination": "MAA",
+      "totalFlights": 51,
+      "directFlights": 7,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, BOM, CCJ, TRV"
+    }    ,
+    "DEL_AMD": {
+      "origin": "DEL",
+      "destination": "AMD",
+      "totalFlights": 68,
+      "directFlights": 21,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "BLR, BOM, GOX, IDR, JAI, JDH"
+    }    ,
+    "DEL_BLR": {
+      "origin": "DEL",
+      "destination": "BLR",
+      "totalFlights": 198,
+      "directFlights": 43,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, BBI, BHO, BOM, CCJ, CCU, COK, DBR, GAU, GOI, GOX, HYD, IDR, IXB, IXC, IXR, LKO, MAA, NAG, PAT, PNQ, RPR, TRV, VNS, VTZ"
+    }    ,
+    "DEL_BOM": {
+      "origin": "DEL",
+      "destination": "BOM",
+      "totalFlights": 223,
+      "directFlights": 53,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, ATQ, BBI, BDQ, BHO, BLR, CCU, COK, DBR, DED, GOI, GOX, GWL, HBX, HSR, HYD, IDR, IXC, IXE, JAI, KNU, LKO, MAA, NAG, PAT, UDR, VNS"
+    }    ,
+    "DEL_CCU": {
+      "origin": "DEL",
+      "destination": "CCU",
+      "totalFlights": 104,
+      "directFlights": 26,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, BLR, BOM, DED, DIB, GAU, HYD, IDR, IXA, IXB, IXC, JAI, LKO, MAA, PAT, VNS"
+    }    ,
+    "DEL_COK": {
+      "origin": "DEL",
+      "destination": "COK",
+      "totalFlights": 113,
+      "directFlights": 9,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "AMD, BLR, BOM, GOI, HYD, IDR, JAI, MAA, PNQ, VNS"
+    }    ,
+    "DEL_GOI": {
+      "origin": "DEL",
+      "destination": "GOI",
+      "totalFlights": 134,
+      "directFlights": 19,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, BDQ, BLR, BOM, HYD, IDR, NAG, PNQ"
+    }    ,
+    "DEL_HYD": {
+      "origin": "DEL",
+      "destination": "HYD",
+      "totalFlights": 164,
+      "directFlights": 29,
+      "carriers": "6E, AI, IX, QP",
+      "layoverAirports": "AMD, AYJ, BBI, BLR, BOM, CCU, COK, DED, GAU, GOI, GOX, IDR, IXB, IXC, IXR, JAI, JLR, LKO, MAA, NAG, PAT, PNQ, RPR, VGA, VNS, VTZ"
+    }    ,
+    "DEL_JAI": {
+      "origin": "DEL",
+      "destination": "JAI",
+      "totalFlights": 37,
+      "directFlights": 5,
+      "carriers": "6E, 9I, AI, IX",
+      "layoverAirports": "BOM, DED, HYD, IDR"
+    }    ,
+    "DEL_MAA": {
+      "origin": "DEL",
+      "destination": "MAA",
+      "totalFlights": 140,
+      "directFlights": 23,
+      "carriers": "6E, AI, IX, SG",
+      "layoverAirports": "BBI, BLR, BOM, CCU, CJB, GAU, HYD, IDR, IXZ, PNQ, SAG, VNS"
+    }    ,
+    "DEL_PNQ": {
+      "origin": "DEL",
+      "destination": "PNQ",
+      "totalFlights": 63,
+      "directFlights": 22,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, BBI, BDQ, BHO, BLR, HYD, IDR, JAI, MAA, STV, VNS"
+    }    ,
+    "GOI_BLR": {
+      "origin": "GOI",
+      "destination": "BLR",
+      "totalFlights": 108,
+      "directFlights": 14,
+      "carriers": "6E, 9I, AI, IX, QP",
+      "layoverAirports": "AMD, BOM, CJB, DEL, HYD, IDR, PNQ"
+    }    ,
+    "GOI_BOM": {
+      "origin": "GOI",
+      "destination": "BOM",
+      "totalFlights": 71,
+      "directFlights": 21,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, BLR, DEL, HYD, IDR"
+    }    ,
+    "GOI_CCU": {
+      "origin": "GOI",
+      "destination": "CCU",
+      "totalFlights": 90,
+      "directFlights": 2,
+      "carriers": "6E, AI, IX, QP",
+      "layoverAirports": "BLR, BOM, DEL, HDO, HYD, IDR, PNQ, RPR"
+    }    ,
+    "GOI_COK": {
+      "origin": "GOI",
+      "destination": "COK",
+      "totalFlights": 76,
+      "directFlights": 1,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, BOM, CCJ, DEL, HYD, MAA, PNQ"
+    }    ,
+    "GOI_DEL": {
+      "origin": "GOI",
+      "destination": "DEL",
+      "totalFlights": 181,
+      "directFlights": 19,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, BLR, BOM, HYD, IDR, JAI, NAG, PNQ, STV"
+    }    ,
+    "GOI_HYD": {
+      "origin": "GOI",
+      "destination": "HYD",
+      "totalFlights": 81,
+      "directFlights": 12,
+      "carriers": "6E, AI, IC, IX",
+      "layoverAirports": "BLR, BOM, DEL, PNQ"
+    }    ,
+    "GOI_MAA": {
+      "origin": "GOI",
+      "destination": "MAA",
+      "totalFlights": 110,
+      "directFlights": 2,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, BOM, CJB, DEL, HYD"
+    }    ,
+    "GOI_PNQ": {
+      "origin": "GOI",
+      "destination": "PNQ",
+      "totalFlights": 64,
+      "directFlights": 5,
+      "carriers": "6E, AI, IC, IX, QP, SG",
+      "layoverAirports": "BLR, DEL, HYD, IDR"
+    }    ,
+    "HYD_AMD": {
+      "origin": "HYD",
+      "destination": "AMD",
+      "totalFlights": 123,
+      "directFlights": 6,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, BOM, DEL, GOX, IDR, PNQ"
+    }    ,
+    "HYD_BLR": {
+      "origin": "HYD",
+      "destination": "BLR",
+      "totalFlights": 75,
+      "directFlights": 18,
+      "carriers": "6E, 9I, AI, IX",
+      "layoverAirports": "BOM, CCJ, CJB, CNN, COK, GOI, GOX, IXE, MAA, PNQ, TIR, VGA"
+    }    ,
+    "HYD_BOM": {
+      "origin": "HYD",
+      "destination": "BOM",
+      "totalFlights": 135,
+      "directFlights": 19,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "AMD, BHO, BLR, COK, DEL, GOI, GOX, IDR, MAA, RJA, RPR, TIR"
+    }    ,
+    "HYD_CCU": {
+      "origin": "HYD",
+      "destination": "CCU",
+      "totalFlights": 123,
+      "directFlights": 8,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BBI, BLR, BOM, DEL, GAU, GOX, HDO, IXA, IXB, IXR, IXZ, JAI, MAA, PAT, RPR, VNS, VTZ"
+    }    ,
+    "HYD_COK": {
+      "origin": "HYD",
+      "destination": "COK",
+      "totalFlights": 82,
+      "directFlights": 7,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, BOM, DEL, MAA"
+    }    ,
+    "HYD_DEL": {
+      "origin": "HYD",
+      "destination": "DEL",
+      "totalFlights": 144,
+      "directFlights": 29,
+      "carriers": "6E, AI, IX, QP",
+      "layoverAirports": "AMD, BBI, BLR, BOM, CCU, DED, GAU, GOI, GOX, IXB, IXU, JAI, LKO, MAA, NAG, PAT, PNQ, RJA, RPR, UDR, VGA, VNS, VTZ"
+    }    ,
+    "HYD_GOI": {
+      "origin": "HYD",
+      "destination": "GOI",
+      "totalFlights": 90,
+      "directFlights": 12,
+      "carriers": "6E, AI, IC, IX",
+      "layoverAirports": "BLR, BOM, DEL, PNQ"
+    }    ,
+    "HYD_JAI": {
+      "origin": "HYD",
+      "destination": "JAI",
+      "totalFlights": 41,
+      "directFlights": 6,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, BOM, CCU, DEL, GAU, IDR"
+    }    ,
+    "HYD_MAA": {
+      "origin": "HYD",
+      "destination": "MAA",
+      "totalFlights": 71,
+      "directFlights": 14,
+      "carriers": "6E, 9I, AI, IX, SG",
+      "layoverAirports": "BLR, BOM, CJB, COK, GOX, IXE, IXM, PNQ, RJA, TRZ, VGA, VTZ"
+    }    ,
+    "HYD_PNQ": {
+      "origin": "HYD",
+      "destination": "PNQ",
+      "totalFlights": 94,
+      "directFlights": 5,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, DEL, GOX, HBX"
+    }    ,
+    "JAI_AMD": {
+      "origin": "JAI",
+      "destination": "AMD",
+      "totalFlights": 28,
+      "directFlights": 4,
+      "carriers": "6E, AI",
+      "layoverAirports": "BOM, DEL, IDR"
+    }    ,
+    "JAI_BLR": {
+      "origin": "JAI",
+      "destination": "BLR",
+      "totalFlights": 77,
+      "directFlights": 6,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "AMD, BOM, CCU, DEL, GAU, GOX, HYD, IDR, LKO, MAA, PNQ, STV, UDR"
+    }    ,
+    "JAI_BOM": {
+      "origin": "JAI",
+      "destination": "BOM",
+      "totalFlights": 53,
+      "directFlights": 9,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "AMD, BLR, DEL, HYD, IDR, UDR"
+    }    ,
+    "JAI_CCU": {
+      "origin": "JAI",
+      "destination": "CCU",
+      "totalFlights": 38,
+      "directFlights": 4,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, BOM, DEL, GAU, HYD, LKO"
+    }    ,
+    "JAI_DEL": {
+      "origin": "JAI",
+      "destination": "DEL",
+      "totalFlights": 52,
+      "directFlights": 5,
+      "carriers": "6E, 9I, AI, IX",
+      "layoverAirports": "BOM, DED, HYD, IDR"
+    }    ,
+    "JAI_HYD": {
+      "origin": "JAI",
+      "destination": "HYD",
+      "totalFlights": 41,
+      "directFlights": 6,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, BOM, CCU, COK, DEL, GAU, IDR, LKO, UDR"
+    }    ,
+    "JAI_MAA": {
+      "origin": "JAI",
+      "destination": "MAA",
+      "totalFlights": 55,
+      "directFlights": 1,
+      "carriers": "6E, AI, IX, SG",
+      "layoverAirports": "BLR, BOM, CCU, DEL, GAU, HYD, PNQ"
+    }    ,
+    "JAI_PNQ": {
+      "origin": "JAI",
+      "destination": "PNQ",
+      "totalFlights": 23,
+      "directFlights": 3,
+      "carriers": "6E, AI, IX, SG",
+      "layoverAirports": "AMD, BLR, DEL, HYD, IDR"
+    }    ,
+    "MAA_AMD": {
+      "origin": "MAA",
+      "destination": "AMD",
+      "totalFlights": 102,
+      "directFlights": 2,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, BOM, DEL, GOX, HYD, PNQ"
+    }    ,
+    "MAA_BLR": {
+      "origin": "MAA",
+      "destination": "BLR",
+      "totalFlights": 54,
+      "directFlights": 14,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BOM, CCJ, CJB, COK, HYD, IXM, TCR, TRZ, VGA"
+    }    ,
+    "MAA_BOM": {
+      "origin": "MAA",
+      "destination": "BOM",
+      "totalFlights": 110,
+      "directFlights": 18,
+      "carriers": "6E, AI, QP",
+      "layoverAirports": "AMD, BLR, CCU, CJB, COK, DEL, HYD, IDR, IXM"
+    }    ,
+    "MAA_CCU": {
+      "origin": "MAA",
+      "destination": "CCU",
+      "totalFlights": 107,
+      "directFlights": 6,
+      "carriers": "6E, AI, IX, QP",
+      "layoverAirports": "BBI, BLR, BOM, DEL, GAU, HDO, HYD, IXB, IXR, IXZ, PAT, RPR, VNS, VTZ"
+    }    ,
+    "MAA_COK": {
+      "origin": "MAA",
+      "destination": "COK",
+      "totalFlights": 50,
+      "directFlights": 7,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, BOM, CCJ"
+    }    ,
+    "MAA_DEL": {
+      "origin": "MAA",
+      "destination": "DEL",
+      "totalFlights": 144,
+      "directFlights": 23,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, BLR, BOM, CCJ, CCU, CJB, GAU, GOI, HYD, IXB, IXC, IXM, IXR, IXZ, PAT, PNQ"
+    }    ,
+    "MAA_GOI": {
+      "origin": "MAA",
+      "destination": "GOI",
+      "totalFlights": 91,
+      "directFlights": 2,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, BOM, CJB, DEL, HYD"
+    }    ,
+    "MAA_HYD": {
+      "origin": "MAA",
+      "destination": "HYD",
+      "totalFlights": 85,
+      "directFlights": 14,
+      "carriers": "6E, 9I, AI, IX, SG",
+      "layoverAirports": "BLR, BOM, CCJ, CJB, COK, DEL, GOX, IXM, PNQ, VGA, VTZ"
+    }    ,
+    "MAA_JAI": {
+      "origin": "MAA",
+      "destination": "JAI",
+      "totalFlights": 57,
+      "directFlights": 1,
+      "carriers": "6E, AI, IX",
+      "layoverAirports": "BLR, BOM, CCU, DEL, GAU, HDO, HYD"
+    }    ,
+    "MAA_PNQ": {
+      "origin": "MAA",
+      "destination": "PNQ",
+      "totalFlights": 91,
+      "directFlights": 8,
+      "carriers": "6E, AI, IX, SG",
+      "layoverAirports": "BLR, CJB, DEL, HYD, JAI"
+    }    ,
+    "PNQ_AMD": {
+      "origin": "PNQ",
+      "destination": "AMD",
+      "totalFlights": 61,
+      "directFlights": 5,
+      "carriers": "6E, AI, IX, QP",
+      "layoverAirports": "BLR, DEL, IDR"
+    }    ,
+    "PNQ_BLR": {
+      "origin": "PNQ",
+      "destination": "BLR",
+      "totalFlights": 90,
+      "directFlights": 14,
+      "carriers": "6E, AI, IX, QP",
+      "layoverAirports": "COK, DEL, GOI, GOX, HYD, JAI, MAA"
+    }    ,
+    "PNQ_BOM": {
+      "origin": "PNQ",
+      "destination": "BOM",
+      "totalFlights": 130,
+      "directFlights": 0,
+      "carriers": "AI",
+      "layoverAirports": "BLR, COK, DEL, IDR, JAI, MAA"
+    }    ,
+    "PNQ_CCU": {
+      "origin": "PNQ",
+      "destination": "CCU",
+      "totalFlights": 70,
+      "directFlights": 4,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "BLR, DEL, GAU, HYD, IXR, JAI, NAG"
+    }    ,
+    "PNQ_DEL": {
+      "origin": "PNQ",
+      "destination": "DEL",
+      "totalFlights": 73,
+      "directFlights": 23,
+      "carriers": "6E, AI, IX, QP, SG",
+      "layoverAirports": "AMD, BBI, BHO, BLR, COK, IDR, JAI, MAA, STV"
+    }    ,
+    "PNQ_GOI": {
+      "origin": "PNQ",
+      "destination": "GOI",
+      "totalFlights": 55,
+      "directFlights": 5,
+      "carriers": "6E, AI, IC, IX, QP, SG",
+      "layoverAirports": "BLR, DEL, HYD, JLG, STV"
+    }    ,
+    "PNQ_HYD": {
+      "origin": "PNQ",
+      "destination": "HYD",
+      "totalFlights": 89,
+      "directFlights": 6,
+      "carriers": "6E, AI, IX, S5",
+      "layoverAirports": "BLR, DEL, GOI, GOX"
+    }    ,
+    "PNQ_JAI": {
+      "origin": "PNQ",
+      "destination": "JAI",
+      "totalFlights": 18,
+      "directFlights": 3,
+      "carriers": "6E, AI, IX, SG",
+      "layoverAirports": "AMD, BLR, DEL, IDR, STV"
+    }    ,
+    "PNQ_MAA": {
+      "origin": "PNQ",
+      "destination": "MAA",
+      "totalFlights": 58,
+      "directFlights": 8,
+      "carriers": "6E, AI, IX, SG",
+      "layoverAirports": "BLR, DEL, GOI, HYD"
+    }
+  }
+}
