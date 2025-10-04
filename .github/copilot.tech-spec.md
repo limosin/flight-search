@@ -47,38 +47,48 @@ Carrier
 - code: string (IATA)
 - name: string
 
-Route
-- source : Airport
-- destiantion : Airport
+Route (direct link only - no connected routes)
+- id: UUID
+- source_code: Airport IATA code (foreign key)
+- destination_code: Airport IATA code (foreign key)
+- Represents ONLY direct flight paths between two airports
 
-Flight
-- Route
-- Carrier
-- Aircraft
+Flight (links carrier + flight_number to a route)
+- id: UUID
+- route_id: Route UUID (foreign key)
+- carrier_code: Carrier IATA code (foreign key)
+- flight_number: string
+- aircraft_type: string (optional)
+- Represents a scheduled flight service on a specific route
 
 FlightInstance (a scheduled operating flight instance)
 - id: UUID
-- Carrier
-- Flight
+- flight_id: Flight UUID (foreign key)
 - departure_time_utc: timestamp
 - arrival_time_utc: timestamp
-- service_date: date (the calendar date of departure in origin local)
+- service_date: date (the calendar date of departure in origin local time)
+- duration_minutes: integer
+- departure_terminal: string (optional)
+- arrival_terminal: string (optional)
+- is_active: boolean
 
 
 Indexes and storage layout
 -------------------------
 - Postgres tables:
-	- airports(airport_code PK) with timezone metadata
-	- Carrier - pk on id and index on code
-	- Route (1 to 1 mapping between airports ids)
-	- flights(id PK), indexes on source and destination airports
-
-- DB Indexes:
-	- flights: (origin, service_date, dep_utc)  -- primary index for candidate lookup
-	- flights: (destination, service_date, dep_utc) -- support reverse lookups if needed
-	- fares: (schedule_id) and (fare_key)
-
-- Partitioning Strategies? Only fight instances would
+	- airports(code PK) with timezone metadata
+	- carriers(id PK, code unique index)
+	- routes(id PK, unique constraint on source_code + destination_code)
+	  - Stores ONLY direct links between airports
+	  - Indexes: source_code, destination_code
+	- flights(id PK, unique constraint on carrier_code + flight_number + route_id)
+	  - Links carrier + flight_number to a route
+	  - Indexes: carrier_code, route_id
+	- flight_instances(id PK)
+	  - Links to flight_id
+	  - Indexes: (flight_id, service_date, departure_time_utc), service_date
+	- fares(id PK, flight_instance_id FK)
+	  - Indexes: flight_instance_id, fare_key
 
 - Redis caches:
 	- adjacency:<origin>:<date> => sorted set by dep_utc containing schedule_ids
@@ -153,15 +163,58 @@ Constraints to enforce when building itineraries:
 - arrival must be before the next leg's departure, taking into account time zones and MCT
 - avoid loops (same airport repeated in the same itinerary sequence) unless explicitly allowed
 
-Candidate generation approach (practical and performant):
-1) Candidate leg lookup: index FlightSchedule by origin + departure date/time range. Retrieve flights departing origin on the requested day (or time window). Use a time-sorted adjacency list: Redis sorted sets or DB index (origin, departure_time). Limit per-origin fetch to a sensible fanout (e.g., top N by frequency or earliest N).
-2) For 0-hop (direct): filter candidate legs whose destination == requested destination.
-3) For 1-hop: for each candidate first-leg (origin -> mid), fetch second-leg candidates where mid -> destination with departure_time >= first.arrival_time + MCT and within max_layover.
-4) For 2-hop: extend the above: for each first-leg consider second-legs (mid1 -> mid2) and then third-leg (mid2 -> destination) using the same connection rules.
+Candidate generation approach (route-based search):
 
-Pseudocode (simplified):
+The search is performed in two phases:
+Phase 1: Route Discovery
+- Find valid route combinations based on max_hops
+- 0-hop: Find routes where source = origin AND destination = final_destination
+- 1-hop: Find route pairs (origin->mid, mid->destination)
+- 2-hop: Find route triplets (origin->mid1, mid1->mid2, mid2->destination)
 
-**** Figure out the pseudocode
+Phase 2: Flight Instance Lookup
+- For each valid route combination, fetch flight instances
+- Join: Route -> Flight -> FlightInstance
+- Filter by service_date and is_active
+- Apply connection time constraints (MCT, max_layover)
+
+Pseudocode:
+
+```
+function search(origin, destination, date, max_hops):
+  itineraries = []
+  
+  // 0-hop (direct)
+  if max_hops >= 0:
+    routes = find_routes(source=origin, dest=destination)
+    for route in routes:
+      flights = find_flights(route_id=route.id)
+      for flight in flights:
+        instances = find_instances(flight_id=flight.id, date=date)
+        for instance in instances:
+          itineraries.add(create_itinerary([instance]))
+  
+  // 1-hop
+  if max_hops >= 1:
+    route_pairs = find_route_pairs(origin, destination)  // SQL join on routes
+    for (route1, route2) in route_pairs:
+      flights1 = find_flights(route_id=route1.id)
+      flights2 = find_flights(route_id=route2.id)
+      for (flight1, flight2) in cartesian(flights1, flights2):
+        instances1 = find_instances(flight_id=flight1.id, date=date)
+        instances2 = find_instances(flight_id=flight2.id, date=date)
+        for (inst1, inst2) in cartesian(instances1, instances2):
+          if valid_connection(inst1, inst2):
+            itineraries.add(create_itinerary([inst1, inst2]))
+  
+  // 2-hop (similar pattern with 3 routes)
+  
+  return itineraries
+
+function valid_connection(arriving, departing):
+  connection_time = departing.departure_utc - arriving.arrival_utc
+  return MCT <= connection_time <= MAX_LAYOVER
+```
 
 Notes on complexity & pruning
 - Naive expansion can explode combinatorially. Use the following to keep work bounded:

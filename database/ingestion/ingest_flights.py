@@ -25,6 +25,10 @@ from database.ingestion.utils import (
 def process_flight_card(card: Dict, db, stats: Dict):
     """
     Process a single flight card from API response
+    Parse each individual leg as a separate route and create flight instances
+    
+    For multi-leg journeys, each leg is stored as a separate route/flight/instance.
+    The search algorithm will later combine these to find multi-hop itineraries.
     
     Args:
         card: Flight card data from API
@@ -32,47 +36,147 @@ def process_flight_card(card: Dict, db, stats: Dict):
         stats: Statistics dictionary to update
     """
     try:
-        # Extract basic information
-        travel_option_id = card.get('travelOptionId')
         summary = card.get('summary', {})
         
-        # Get flight details from subTravelOptionIds (use first one for direct flights)
+        # Get sub travel options which show the leg structure
         sub_travel_options = card.get('subTravelOptionIds', [])
         if not sub_travel_options:
             stats['skipped_no_travel_options'] += 1
             return
         
-        # Parse the travel option ID to get flight details
-        # Format: "CARRIER-FLIGHT_NUMBER-ORIGIN-DEST-TIMESTAMP" or multi-leg with "__"
-        legs = sub_travel_options[0].split('__')
-        
-        # For now, we'll focus on direct flights and simple connecting flights
-        # Multi-leg complex itineraries will be handled separately
-        
-        # Get origin and destination from summary
-        first_departure = summary.get('firstDeparture', {})
-        last_arrival = summary.get('lastArrival', {})
-        
-        origin_code = safe_get(first_departure, 'airport', 'code')
-        dest_code = safe_get(last_arrival, 'airport', 'code')
-        
-        if not origin_code or not dest_code:
-            stats['skipped_missing_airports'] += 1
-            return
-        
-        # Get airline from first flight
+        # Get flights array which has individual flight details
         flights_list = summary.get('flights', [])
         if not flights_list:
             stats['skipped_no_flights'] += 1
             return
         
-        carrier_code = flights_list[0].get('airlineCode')
-        flight_number = flights_list[0].get('flightNumber')
+        # Parse the first sub_travel_option to extract leg information
+        # Format: "CARRIER-FLIGHT_NUM-ORIG-DEST-TIMESTAMP__CARRIER-FLIGHT_NUM-ORIG-DEST-TIMESTAMP"
+        leg_strings = sub_travel_options[0].split('__')
         
-        if not carrier_code or not flight_number:
-            stats['skipped_missing_carrier'] += 1
-            return
+        # Each leg_string should correspond to a flight in flights_list
+        if len(leg_strings) != len(flights_list):
+            # For direct flights, there might be 1 flight in the list
+            # but the structure is still valid
+            pass
         
+        # Process each leg
+        for i, leg_str in enumerate(leg_strings):
+            parts = leg_str.split('-')
+            if len(parts) < 5:
+                stats['skipped_invalid_format'] += 1
+                continue
+            
+            carrier_code = parts[0]
+            flight_number = parts[1]
+            origin_code = parts[2]
+            dest_code = parts[3]
+            # timestamp = parts[4]  # Unix timestamp
+            
+            # Validate we have the necessary data
+            if not all([carrier_code, flight_number, origin_code, dest_code]):
+                stats['skipped_missing_data'] += 1
+                continue
+            
+            # For timing, we need to extract from the appropriate part of summary
+            # For the first leg, use firstDeparture
+            # For the last leg, use lastArrival
+            # For middle legs, we'd need more complex parsing
+            
+            # Simplified approach: for now, create routes and flights
+            # but only create instances for flights we can get proper timing for
+            
+            if len(leg_strings) == 1:
+                # Direct flight - use firstDeparture and lastArrival
+                first_departure = summary.get('firstDeparture', {})
+                last_arrival = summary.get('lastArrival', {})
+                
+                process_single_leg(
+                    carrier_code, flight_number, origin_code, dest_code,
+                    first_departure, last_arrival, db, stats
+                )
+            else:
+                # Multi-leg flight
+                # We'll create the route and flight but skip instance creation
+                # since we don't have individual leg timings in the current data
+                create_route_and_flight(
+                    carrier_code, flight_number, origin_code, dest_code,
+                    db, stats
+                )
+        
+    except Exception as e:
+        stats['errors'] += 1
+        print(f"Error processing card: {e}")
+
+
+def create_route_and_flight(carrier_code: str, flight_number: str, 
+                            origin_code: str, dest_code: str, db, stats: Dict):
+    """
+    Create route and flight without instance (for legs we don't have timing for)
+    
+    Args:
+        carrier_code: Airline code
+        flight_number: Flight number
+        origin_code: Origin airport code
+        dest_code: Destination airport code
+        db: Database session
+        stats: Statistics dictionary
+    """
+    try:
+        # Step 1: Check/Create Route
+        route = db.query(Route).filter_by(
+            source_code=origin_code,
+            destination_code=dest_code
+        ).first()
+        
+        if not route:
+            route = Route(
+                source_code=origin_code,
+                destination_code=dest_code
+            )
+            db.add(route)
+            db.flush()
+            stats['routes_created'] += 1
+        
+        # Step 2: Check/Create Flight
+        flight = db.query(Flight).filter_by(
+            carrier_code=carrier_code,
+            flight_number=flight_number,
+            route_id=route.id
+        ).first()
+        
+        if not flight:
+            flight = Flight(
+                carrier_code=carrier_code,
+                flight_number=flight_number,
+                route_id=route.id
+            )
+            db.add(flight)
+            db.flush()
+            stats['flights_created'] += 1
+        
+    except Exception as e:
+        stats['errors'] += 1
+        print(f"Error creating route/flight {carrier_code}-{flight_number}: {e}")
+
+
+def process_single_leg(carrier_code: str, flight_number: str, origin_code: str, 
+                      dest_code: str, first_departure: Dict, last_arrival: Dict,
+                      db, stats: Dict):
+    """
+    Process a single flight leg and create route, flight, and flight instance
+    
+    Args:
+        carrier_code: Airline code
+        flight_number: Flight number
+        origin_code: Origin airport code
+        dest_code: Destination airport code
+        first_departure: Departure info dict
+        last_arrival: Arrival info dict
+        db: Database session
+        stats: Statistics dictionary
+    """
+    try:
         # Get timing information
         dep_time_str = safe_get(first_departure, 'airport', 'time')
         arr_time_str = safe_get(last_arrival, 'airport', 'time')
@@ -91,36 +195,30 @@ def process_flight_card(card: Dict, db, stats: Dict):
         # Get service date
         service_date = get_service_date(dep_time_utc, origin_tz)
         
-        # Calculate duration
-        duration_obj = summary.get('totalDuration', {})
-        duration_minutes = duration_obj.get('hh', 0) * 60 + duration_obj.get('mm', 0)
-        
-        # Get number of stops
-        stops = summary.get('stops', 0)
+        # Calculate duration in minutes
+        duration_seconds = (arr_time_utc - dep_time_utc).total_seconds()
+        duration_minutes = int(duration_seconds / 60)
         
         # Get terminal information
         dep_terminal = safe_get(first_departure, 'airport', 'terminal', 'name')
         arr_terminal = safe_get(last_arrival, 'airport', 'terminal', 'name')
         
-        # Check if route exists
+        # Step 1: Check/Create Route (direct link only)
         route = db.query(Route).filter_by(
-            origin_code=origin_code,
+            source_code=origin_code,
             destination_code=dest_code
         ).first()
         
         if not route:
-            # Create route if it doesn't exist
             route = Route(
-                origin_code=origin_code,
-                destination_code=dest_code,
-                total_flights=0,
-                direct_flights=0
+                source_code=origin_code,
+                destination_code=dest_code
             )
             db.add(route)
             db.flush()
             stats['routes_created'] += 1
         
-        # Check if flight exists (carrier + flight_number + route)
+        # Step 2: Check/Create Flight (links carrier + flight_number to route)
         flight = db.query(Flight).filter_by(
             carrier_code=carrier_code,
             flight_number=flight_number,
@@ -137,11 +235,12 @@ def process_flight_card(card: Dict, db, stats: Dict):
             db.flush()
             stats['flights_created'] += 1
         
-        # Check if flight instance already exists
+        # Step 3: Check/Create FlightInstance
         existing_instance = db.query(FlightInstance).filter_by(
             flight_id=flight.id,
             departure_time_utc=dep_time_utc,
-            arrival_time_utc=arr_time_utc
+            arrival_time_utc=arr_time_utc,
+            service_date=service_date
         ).first()
         
         if existing_instance:
@@ -151,15 +250,10 @@ def process_flight_card(card: Dict, db, stats: Dict):
         # Create flight instance
         flight_instance = FlightInstance(
             flight_id=flight.id,
-            origin_code=origin_code,
-            destination_code=dest_code,
-            carrier_code=carrier_code,
-            flight_number=flight_number,
             departure_time_utc=dep_time_utc,
             arrival_time_utc=arr_time_utc,
             service_date=service_date,
             duration_minutes=duration_minutes,
-            stops=stops,
             departure_terminal=dep_terminal,
             arrival_terminal=arr_terminal,
             is_active=True
@@ -168,13 +262,11 @@ def process_flight_card(card: Dict, db, stats: Dict):
         db.flush()
         stats['instances_created'] += 1
         
-        # Note: Fare information is complex and nested in the API response
-        # It would require additional processing from the fareOptions/faresByTravelOptionId
-        # For now, we'll skip fare ingestion in this basic version
-        
     except Exception as e:
         stats['errors'] += 1
-        print(f"Error processing card: {e}")
+        print(f"Error processing leg {carrier_code}-{flight_number}: {e}")
+
+
         # Don't raise - continue with next card
 
 
@@ -233,9 +325,9 @@ def ingest_all_flights(flights_data_dir: str, limit: Optional[int] = None):
         'instances_created': 0,
         'instances_duplicates': 0,
         'skipped_no_travel_options': 0,
-        'skipped_missing_airports': 0,
         'skipped_no_flights': 0,
-        'skipped_missing_carrier': 0,
+        'skipped_invalid_format': 0,
+        'skipped_missing_data': 0,
         'skipped_missing_times': 0,
         'errors': 0
     }
@@ -280,9 +372,9 @@ def ingest_all_flights(flights_data_dir: str, limit: Optional[int] = None):
         print(f"Duplicate instances:      {stats['instances_duplicates']}")
         print(f"\nSkipped records:")
         print(f"  - No travel options:    {stats['skipped_no_travel_options']}")
-        print(f"  - Missing airports:     {stats['skipped_missing_airports']}")
         print(f"  - No flights:           {stats['skipped_no_flights']}")
-        print(f"  - Missing carrier:      {stats['skipped_missing_carrier']}")
+        print(f"  - Invalid format:       {stats['skipped_invalid_format']}")
+        print(f"  - Missing data:         {stats['skipped_missing_data']}")
         print(f"  - Missing times:        {stats['skipped_missing_times']}")
         print(f"\nErrors:                   {stats['errors']}")
         

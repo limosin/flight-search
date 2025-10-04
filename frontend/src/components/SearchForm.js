@@ -3,13 +3,13 @@ import './SearchForm.css';
 
 const SearchForm = ({ onSearch, loading }) => {
   const [formData, setFormData] = useState({
-    origin: 'DEL',
-    destination: 'BLR',
+    origin: 'GOI',
+    destination: 'COK',
     date: '2025-10-10',
     passengers: 1,
     cabin: 'economy',
     max_hops: 2,
-    max_results: 50,
+    max_results: 200,
     sort: 'price'
   });
 
@@ -170,7 +170,7 @@ const SearchForm = ({ onSearch, loading }) => {
             value={formData.max_results}
             onChange={handleChange}
             min="1"
-            max="100"
+            max="200"
           />
         </div>
       </div>

@@ -9,9 +9,7 @@ from .schema import (
     Route,
     Flight,
     FlightInstance,
-    Fare,
-    FlightLeg,
-    LayoverAirport
+    Fare
 )
 
 __all__ = [
@@ -21,7 +19,5 @@ __all__ = [
     'Route',
     'Flight',
     'FlightInstance',
-    'Fare',
-    'FlightLeg',
-    'LayoverAirport'
+    'Fare'
 ]

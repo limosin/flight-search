@@ -1,27 +1,38 @@
 """
-Flight search service - implements the search algorithm from tech spec
+Flight search service - implements route-based search algorithm
+New Schema: Route (direct links) -> Flight (carrier+number) -> FlightInstance (scheduled)
 """
 
 import sys
 from pathlib import Path
 from typing import List, Optional, Tuple
 from datetime import datetime, date, timedelta
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 import uuid
 import random
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from database.models import FlightInstance, Airport, Route
+from database.models import FlightInstance, Flight, Airport, Route, Carrier
 from app.models import FlightLeg, Itinerary, Price
 from app.core.config import settings
 
 
 class FlightSearchService:
     """
-    Flight search service implementing multi-hop search algorithm
-    Supports 0, 1, or 2 hops (direct, 1-stop, 2-stop flights)
+    Flight search service implementing route-based multi-hop search algorithm
+    
+    New Schema Architecture:
+    - Routes: Direct links between airports (source -> destination)
+    - Flights: Carrier + flight_number on a route
+    - FlightInstances: Scheduled instances of flights with date/time
+    
+    Search Strategy:
+    1. Find valid route combinations (0, 1, or 2 hops)
+    2. For each route combination, fetch flights and instances
+    3. Validate connections (MCT, max layover)
+    4. Return itineraries
     """
     
     def __init__(self, db: Session):
@@ -95,7 +106,12 @@ class FlightSearchService:
         self, origin: str, destination: str, search_date: date
     ) -> List[Itinerary]:
         """
-        Search for direct flights (0 hops)
+        Search for direct flights (0 hops) using route-based approach
+        
+        Algorithm:
+        1. Find routes where source = origin AND destination = final_destination
+        2. For each route, get flights
+        3. For each flight, get instances on the search date
         
         Args:
             origin: Origin airport code
@@ -105,19 +121,29 @@ class FlightSearchService:
         Returns:
             List of direct flight itineraries
         """
-        # Query direct flights
-        flights = self.db.query(FlightInstance).filter(
-            FlightInstance.origin_code == origin,
-            FlightInstance.destination_code == destination,
-            FlightInstance.service_date == search_date,
-            FlightInstance.stops == 0,
-            FlightInstance.is_active == True
-        ).order_by(FlightInstance.departure_time_utc).all()
+        # Query: Route -> Flight -> FlightInstance
+        instances = (
+            self.db.query(FlightInstance)
+            .join(Flight, FlightInstance.flight_id == Flight.id)
+            .join(Route, Flight.route_id == Route.id)
+            .filter(
+                Route.source_code == origin,
+                Route.destination_code == destination,
+                FlightInstance.service_date == search_date,
+                FlightInstance.is_active == True
+            )
+            .options(
+                joinedload(FlightInstance.flight).joinedload(Flight.route),
+                joinedload(FlightInstance.flight).joinedload(Flight.carrier)
+            )
+            .order_by(FlightInstance.departure_time_utc)
+            .all()
+        )
         
         # Convert to itineraries
         itineraries = []
-        for flight in flights:
-            leg = self._create_flight_leg(flight)
+        for instance in instances:
+            leg = self._create_flight_leg_from_instance(instance)
             itinerary = self._create_itinerary([leg])
             itineraries.append(itinerary)
         
@@ -127,15 +153,13 @@ class FlightSearchService:
         self, origin: str, destination: str, search_date: date
     ) -> List[Itinerary]:
         """
-        Search for 1-stop flights (1 hop) - OPTIMIZED VERSION
+        Search for 1-stop flights (1 hop) using route-based approach
         
         Algorithm:
-        1. Find all flights from origin on the date (with limit)
-        2. Bulk fetch ALL possible second legs in ONE query
-        3. Group second legs by origin in memory
-        4. Match and validate connections
-        
-        Performance: 51 queries → 2 queries (25x faster)
+        1. Find route pairs: (origin->intermediate, intermediate->destination)
+        2. For each route pair, get flight instances
+        3. Validate connections (MCT, max layover)
+        4. Build itineraries
         
         Args:
             origin: Origin airport code
@@ -146,59 +170,71 @@ class FlightSearchService:
             List of 1-stop itineraries
         """
         from collections import defaultdict
+        from sqlalchemy.orm import aliased
         
         itineraries = []
         
-        # Query 1: Get first leg candidates (origin -> intermediate)
-        # Limit to top 30 by departure time to prevent query explosion
-        first_legs = self.db.query(FlightInstance).filter(
-            FlightInstance.origin_code == origin,
-            FlightInstance.service_date == search_date,
-            FlightInstance.destination_code != destination,  # Not direct
-            FlightInstance.is_active == True
-        ).order_by(FlightInstance.departure_time_utc).limit(30).all()
+        # Use explicit aliases for the two routes
+        Route1 = aliased(Route)
+        Route2 = aliased(Route)
         
-        if not first_legs:
-            return []
+        # Find route pairs: origin -> intermediate -> destination
+        route_pairs = (
+            self.db.query(Route1, Route2)
+            .filter(
+                Route1.source_code == origin,
+                Route2.destination_code == destination,
+                Route1.destination_code == Route2.source_code,  # Connection point
+                Route1.destination_code != origin,  # No loops
+                Route1.destination_code != destination
+            )
+            .limit(100)  # Limit route combinations
+            .all()
+        )
         
-        # Extract unique intermediate airports
-        intermediate_airports = list(set(
-            leg.destination_code for leg in first_legs 
-            if leg.destination_code != origin  # Avoid loops
-        ))
-        
-        if not intermediate_airports:
-            return []
-        
-        # Query 2: Bulk fetch ALL possible second legs in ONE query using IN clause
-        all_second_legs = self.db.query(FlightInstance).filter(
-            FlightInstance.origin_code.in_(intermediate_airports),  # Bulk IN clause!
-            FlightInstance.destination_code == destination,
-            FlightInstance.service_date == search_date,
-            FlightInstance.is_active == True
-        ).all()
-        
-        # Group second legs by origin airport for O(1) lookup
-        second_legs_by_origin = defaultdict(list)
-        for leg in all_second_legs:
-            second_legs_by_origin[leg.origin_code].append(leg)
-        
-        # Build itineraries in memory (no more database queries!)
-        for first_leg in first_legs:
-            intermediate = first_leg.destination_code
+        # Step 2: For each route pair, get flight instances
+        for route1, route2 in route_pairs:
+            # Get instances for first leg
+            instances1 = (
+                self.db.query(FlightInstance)
+                .join(Flight, FlightInstance.flight_id == Flight.id)
+                .filter(
+                    Flight.route_id == route1.id,
+                    FlightInstance.service_date == search_date,
+                    FlightInstance.is_active == True
+                )
+                .options(
+                    joinedload(FlightInstance.flight).joinedload(Flight.carrier)
+                )
+                .order_by(FlightInstance.departure_time_utc)
+                .limit(30)
+                .all()
+            )
             
-            # Skip if loop
-            if intermediate == origin:
-                continue
+            # Get instances for second leg
+            instances2 = (
+                self.db.query(FlightInstance)
+                .join(Flight, FlightInstance.flight_id == Flight.id)
+                .filter(
+                    Flight.route_id == route2.id,
+                    FlightInstance.service_date == search_date,
+                    FlightInstance.is_active == True
+                )
+                .options(
+                    joinedload(FlightInstance.flight).joinedload(Flight.carrier)
+                )
+                .order_by(FlightInstance.departure_time_utc)
+                .all()
+            )
             
-            # Get second legs for this intermediate airport
-            for second_leg in second_legs_by_origin.get(intermediate, []):
-                # Check connection feasibility
-                if self._is_valid_connection(first_leg, second_leg):
-                    leg1 = self._create_flight_leg(first_leg)
-                    leg2 = self._create_flight_leg(second_leg)
-                    itinerary = self._create_itinerary([leg1, leg2])
-                    itineraries.append(itinerary)
+            # Step 3: Validate connections and build itineraries
+            for inst1 in instances1:
+                for inst2 in instances2:
+                    if self._is_valid_connection(inst1, inst2):
+                        leg1 = self._create_flight_leg_from_instance(inst1, route1)
+                        leg2 = self._create_flight_leg_from_instance(inst2, route2)
+                        itinerary = self._create_itinerary([leg1, leg2])
+                        itineraries.append(itinerary)
         
         return itineraries
     
@@ -206,15 +242,13 @@ class FlightSearchService:
         self, origin: str, destination: str, search_date: date
     ) -> List[Itinerary]:
         """
-        Search for 2-stop flights (2 hops) - OPTIMIZED VERSION
+        Search for 2-stop flights (2 hops) using route-based approach
         
         Algorithm:
-        1. Find first leg from origin (with limit)
-        2. Bulk fetch ALL second legs from intermediate airports in ONE query
-        3. Bulk fetch ALL third legs to destination in ONE query
-        4. Match and validate connections in memory
-        
-        Performance: 2,051 queries → 3 queries (680x faster)
+        1. Find route triplets: (origin->mid1, mid1->mid2, mid2->destination)
+        2. For each route triplet, get flight instances
+        3. Validate connections
+        4. Build itineraries
         
         Args:
             origin: Origin airport code
@@ -224,90 +258,90 @@ class FlightSearchService:
         Returns:
             List of 2-stop itineraries
         """
-        from collections import defaultdict
+        from sqlalchemy.orm import aliased
         
         itineraries = []
         
-        # Query 1: Get first leg candidates (with limit)
-        first_legs = self.db.query(FlightInstance).filter(
-            FlightInstance.origin_code == origin,
-            FlightInstance.service_date == search_date,
-            FlightInstance.destination_code != destination,
-            FlightInstance.is_active == True
-        ).order_by(FlightInstance.departure_time_utc).limit(30).all()
+        # Create aliases for three routes
+        Route1 = aliased(Route)
+        Route2 = aliased(Route)
+        Route3 = aliased(Route)
         
-        if not first_legs:
-            return []
+        # Find route triplets
+        route_triplets = (
+            self.db.query(Route1, Route2, Route3)
+            .filter(
+                Route1.source_code == origin,
+                Route3.destination_code == destination,
+                Route1.destination_code == Route2.source_code,  # First connection
+                Route2.destination_code == Route3.source_code,  # Second connection
+                Route1.destination_code != origin,  # No loops
+                Route1.destination_code != destination,
+                Route2.destination_code != origin,
+                Route2.destination_code != destination,
+                Route1.destination_code != Route2.destination_code  # Different intermediates
+            )
+            .limit(50)  # Limit combinations
+            .all()
+        )
         
-        # Extract unique intermediate airports from first legs
-        intermediate1_airports = list(set(
-            leg.destination_code for leg in first_legs
-            if leg.destination_code != origin
-        ))
-        
-        if not intermediate1_airports:
-            return []
-        
-        # Query 2: Bulk fetch ALL second legs from first intermediate airports
-        all_second_legs = self.db.query(FlightInstance).filter(
-            FlightInstance.origin_code.in_(intermediate1_airports),
-            FlightInstance.destination_code != destination,
-            FlightInstance.destination_code != origin,
-            FlightInstance.service_date == search_date,
-            FlightInstance.is_active == True
-        ).all()
-        
-        # Group second legs by origin
-        second_legs_by_origin = defaultdict(list)
-        for leg in all_second_legs:
-            second_legs_by_origin[leg.origin_code].append(leg)
-        
-        # Extract unique intermediate airports from second legs
-        intermediate2_airports = list(set(
-            leg.destination_code for leg in all_second_legs
-            if leg.destination_code not in [origin] + intermediate1_airports
-        ))
-        
-        if not intermediate2_airports:
-            return []
-        
-        # Query 3: Bulk fetch ALL third legs to destination
-        all_third_legs = self.db.query(FlightInstance).filter(
-            FlightInstance.origin_code.in_(intermediate2_airports),
-            FlightInstance.destination_code == destination,
-            FlightInstance.service_date == search_date,
-            FlightInstance.is_active == True
-        ).all()
-        
-        # Group third legs by origin
-        third_legs_by_origin = defaultdict(list)
-        for leg in all_third_legs:
-            third_legs_by_origin[leg.origin_code].append(leg)
-        
-        # Build itineraries in memory (no more database queries!)
-        for first_leg in first_legs:
-            intermediate1 = first_leg.destination_code
+        # For each route triplet, get flight instances
+        for route1, route2, route3 in route_triplets:
+            # Get instances for each leg (limit to prevent explosion)
+            instances1 = (
+                self.db.query(FlightInstance)
+                .join(Flight, FlightInstance.flight_id == Flight.id)
+                .filter(
+                    Flight.route_id == route1.id,
+                    FlightInstance.service_date == search_date,
+                    FlightInstance.is_active == True
+                )
+                .options(joinedload(FlightInstance.flight).joinedload(Flight.carrier))
+                .order_by(FlightInstance.departure_time_utc)
+                .limit(10)
+                .all()
+            )
             
-            if intermediate1 == origin:
-                continue
+            instances2 = (
+                self.db.query(FlightInstance)
+                .join(Flight, FlightInstance.flight_id == Flight.id)
+                .filter(
+                    Flight.route_id == route2.id,
+                    FlightInstance.service_date == search_date,
+                    FlightInstance.is_active == True
+                )
+                .options(joinedload(FlightInstance.flight).joinedload(Flight.carrier))
+                .order_by(FlightInstance.departure_time_utc)
+                .limit(10)
+                .all()
+            )
             
-            for second_leg in second_legs_by_origin.get(intermediate1, []):
-                if not self._is_valid_connection(first_leg, second_leg):
-                    continue
-                
-                intermediate2 = second_leg.destination_code
-                
-                # Avoid loops
-                if intermediate2 in [origin, intermediate1]:
-                    continue
-                
-                for third_leg in third_legs_by_origin.get(intermediate2, []):
-                    if self._is_valid_connection(second_leg, third_leg):
-                        leg1 = self._create_flight_leg(first_leg)
-                        leg2 = self._create_flight_leg(second_leg)
-                        leg3 = self._create_flight_leg(third_leg)
-                        itinerary = self._create_itinerary([leg1, leg2, leg3])
-                        itineraries.append(itinerary)
+            instances3 = (
+                self.db.query(FlightInstance)
+                .join(Flight, FlightInstance.flight_id == Flight.id)
+                .filter(
+                    Flight.route_id == route3.id,
+                    FlightInstance.service_date == search_date,
+                    FlightInstance.is_active == True
+                )
+                .options(joinedload(FlightInstance.flight).joinedload(Flight.carrier))
+                .order_by(FlightInstance.departure_time_utc)
+                .all()
+            )
+            
+            # Build itineraries with connection validation
+            for inst1 in instances1:
+                for inst2 in instances2:
+                    if not self._is_valid_connection(inst1, inst2):
+                        continue
+                    
+                    for inst3 in instances3:
+                        if self._is_valid_connection(inst2, inst3):
+                            leg1 = self._create_flight_leg_from_instance(inst1, route1)
+                            leg2 = self._create_flight_leg_from_instance(inst2, route2)
+                            leg3 = self._create_flight_leg_from_instance(inst3, route3)
+                            itinerary = self._create_itinerary([leg1, leg2, leg3])
+                            itineraries.append(itinerary)
         
         return itineraries
     
@@ -346,24 +380,31 @@ class FlightSearchService:
         
         return True
     
-    def _create_flight_leg(self, flight: FlightInstance) -> FlightLeg:
+    def _create_flight_leg_from_instance(
+        self, instance: FlightInstance, route: Optional[Route] = None
+    ) -> FlightLeg:
         """
         Convert FlightInstance to FlightLeg API model
         
         Args:
-            flight: FlightInstance from database
+            instance: FlightInstance from database
+            route: Optional Route (if not eager loaded)
             
         Returns:
             FlightLeg model
         """
+        # Get route info (either from parameter or from instance.flight.route)
+        if route is None:
+            route = instance.flight.route
+        
         return FlightLeg(
-            carrier=flight.carrier_code,
-            flight_number=flight.flight_number,
-            origin=flight.origin_code,
-            destination=flight.destination_code,
-            departure_time_utc=flight.departure_time_utc,
-            arrival_time_utc=flight.arrival_time_utc,
-            duration_minutes=flight.duration_minutes
+            carrier=instance.flight.carrier_code,
+            flight_number=instance.flight.flight_number,
+            origin=route.source_code,
+            destination=route.destination_code,
+            departure_time_utc=instance.departure_time_utc,
+            arrival_time_utc=instance.arrival_time_utc,
+            duration_minutes=instance.duration_minutes
         )
     
     def _create_itinerary(self, legs: List[FlightLeg]) -> Itinerary:
