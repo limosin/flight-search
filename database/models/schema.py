@@ -166,7 +166,7 @@ class Fare(Base):
     __tablename__ = 'fares'
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    flight_instance_id = Column(String(36), ForeignKey('flight_instances.id'), nullable=False)
+    flight_instance_id = Column(String(36), ForeignKey('flight_instances.id'), nullable=True)
     
     # Fare identification
     fare_key = Column(String(500), unique=True, nullable=False, index=True)  # Opaque key for detailed fare lookup

@@ -12,6 +12,7 @@ from database.config import init_db, reset_db
 from database.ingestion.ingest_reference_data import ingest_airports, ingest_carriers
 from database.ingestion.ingest_routes import ingest_routes
 from database.ingestion.ingest_flights import ingest_all_flights
+from database.ingestion.ingest_fares import ingest_all_fares
 
 
 def main():
@@ -24,6 +25,7 @@ def main():
     parser.add_argument('--reset', action='store_true', help='Reset database before ingestion')
     parser.add_argument('--limit', type=int, help='Limit number of flight files to process (for testing)')
     parser.add_argument('--skip-flights', action='store_true', help='Skip flight data ingestion')
+    parser.add_argument('--skip-fares', action='store_true', help='Skip fare data ingestion')
     args = parser.parse_args()
     
     print("\n" + "=" * 70)
@@ -81,13 +83,29 @@ def main():
         print("\nSTEP 3: Skipping Flight Data Ingestion")
         print("-" * 70)
     
+    print("\n" + "-" * 70)
+    
+    # Step 4: Ingest fare data
+    if not args.skip_fares:
+        print("\nSTEP 4: Ingesting Fare Data")
+        print("-" * 70)
+        flights_data_dir = project_root / 'flights-data'
+        
+        if flights_data_dir.exists():
+            ingest_all_fares(str(flights_data_dir), limit=args.limit)
+        else:
+            print(f"⚠️  Flight data directory not found at {flights_data_dir}")
+    else:
+        print("\nSTEP 4: Skipping Fare Data Ingestion")
+        print("-" * 70)
+    
     print("\n" + "=" * 70)
     print(" " * 20 + "INGESTION COMPLETED SUCCESSFULLY")
     print("=" * 70 + "\n")
     
     # Print summary
     from database.config import SessionLocal
-    from database.models import Airport, Carrier, Route, Flight, FlightInstance
+    from database.models import Airport, Carrier, Route, Flight, FlightInstance, Fare
     
     db = SessionLocal()
     try:
@@ -97,6 +115,7 @@ def main():
         print(f"  Routes:           {db.query(Route).count()}")
         print(f"  Flights:          {db.query(Flight).count()}")
         print(f"  Flight Instances: {db.query(FlightInstance).count()}")
+        print(f"  Fares:            {db.query(Fare).count()}")
     finally:
         db.close()
     

@@ -8,7 +8,7 @@ import random
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from database.models import FlightInstance, Flight, Airport, Route, Carrier
+from database.models import FlightInstance, Flight, Airport, Route, Carrier, Fare
 from app.models import FlightLeg, Itinerary, Price
 from app.core.config import settings
 
@@ -278,10 +278,15 @@ class FlightSearchService:
         last_arrival = legs[-1].arrival_time_utc
         total_duration = int((last_arrival - first_departure).total_seconds() / 60)
         
-        base_price = random.uniform(3000, 15000)
-        num_legs = len(legs)
-        price_multiplier = 1.0 + (num_legs - 1) * 0.3
-        total_price = round(base_price * price_multiplier, 2)
+        # Try to get real fare from database
+        total_price = self._get_fare_for_itinerary(legs)
+        
+        # Fallback to random price if no fare found
+        if total_price is None:
+            base_price = random.uniform(3000, 15000)
+            num_legs = len(legs)
+            price_multiplier = 1.0 + (num_legs - 1) * 0.3
+            total_price = round(base_price * price_multiplier, 2)
         
         itinerary_id = str(uuid.uuid4())
         fare_key = f"fare_{legs[0].origin}_{legs[-1].destination}_{legs[0].departure_time_utc.strftime('%Y%m%d')}_{itinerary_id[:8]}"
@@ -294,6 +299,70 @@ class FlightSearchService:
             price=Price(currency="INR", amount=total_price),
             fare_key=fare_key
         )
+    
+    def _get_fare_for_itinerary(self, legs: List[FlightLeg]) -> Optional[float]:
+        """
+        Attempt to get real fare from database for the itinerary
+        For direct flights, looks up fare by flight instance
+        For multi-leg, estimates based on individual leg fares
+        """
+        try:
+            if len(legs) == 1:
+                # Direct flight - look up exact fare
+                leg = legs[0]
+                fare = (
+                    self.db.query(Fare)
+                    .join(FlightInstance, Fare.flight_instance_id == FlightInstance.id)
+                    .join(Flight, FlightInstance.flight_id == Flight.id)
+                    .join(Route, Flight.route_id == Route.id)
+                    .filter(
+                        Route.source_code == leg.origin,
+                        Route.destination_code == leg.destination,
+                        Flight.carrier_code == leg.carrier,
+                        Flight.flight_number == leg.flight_number,
+                        FlightInstance.departure_time_utc == leg.departure_time_utc
+                    )
+                    .order_by(Fare.total_price.asc())
+                    .first()
+                )
+                
+                if fare:
+                    return float(fare.total_price)
+            else:
+                # Multi-leg - sum individual leg fares if available
+                total = 0
+                all_fares_found = True
+                
+                for leg in legs:
+                    fare = (
+                        self.db.query(Fare)
+                        .join(FlightInstance, Fare.flight_instance_id == FlightInstance.id)
+                        .join(Flight, FlightInstance.flight_id == Flight.id)
+                        .join(Route, Flight.route_id == Route.id)
+                        .filter(
+                            Route.source_code == leg.origin,
+                            Route.destination_code == leg.destination,
+                            Flight.carrier_code == leg.carrier,
+                            Flight.flight_number == leg.flight_number,
+                            FlightInstance.departure_time_utc == leg.departure_time_utc
+                        )
+                        .order_by(Fare.total_price.asc())
+                        .first()
+                    )
+                    
+                    if fare:
+                        total += float(fare.total_price)
+                    else:
+                        all_fares_found = False
+                        break
+                
+                if all_fares_found:
+                    return total
+        
+        except Exception as e:
+            print(f"Error fetching fare: {e}")
+        
+        return None
     
     def _filter_by_time_window(
         self,
