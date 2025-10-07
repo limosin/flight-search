@@ -1,5 +1,5 @@
 """
-Master ingestion script - Run all ingestion steps in order
+Master ingestion script for Memgraph - Run all ingestion steps in order
 """
 
 import sys
@@ -8,7 +8,7 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from database.config import init_db, reset_db
+from database.memgraph_config import init_db, reset_db, get_database_stats
 from database.ingestion.ingest_reference_data import ingest_airports, ingest_carriers
 from database.ingestion.ingest_routes import ingest_routes
 from database.ingestion.ingest_flights import ingest_all_flights
@@ -17,11 +17,11 @@ from database.ingestion.ingest_fares import ingest_all_fares
 
 def main():
     """
-    Run complete ingestion pipeline
+    Run complete ingestion pipeline for Memgraph
     """
     import argparse
     
-    parser = argparse.ArgumentParser(description='Run complete data ingestion pipeline')
+    parser = argparse.ArgumentParser(description='Run complete data ingestion pipeline for Memgraph')
     parser.add_argument('--reset', action='store_true', help='Reset database before ingestion')
     parser.add_argument('--limit', type=int, help='Limit number of flight files to process (for testing)')
     parser.add_argument('--skip-flights', action='store_true', help='Skip flight data ingestion')
@@ -29,7 +29,7 @@ def main():
     args = parser.parse_args()
     
     print("\n" + "=" * 70)
-    print(" " * 20 + "FLIGHT SEARCH DATA INGESTION")
+    print(" " * 15 + "FLIGHT SEARCH DATA INGESTION - MEMGRAPH")
     print("=" * 70 + "\n")
     
     # Step 0: Initialize or reset database
@@ -55,7 +55,7 @@ def main():
     
     print("\n" + "-" * 70)
     
-    # Step 2: Ingest routes
+    # Step 2: Ingest routes (as CONNECTS_TO relationships)
     print("\nSTEP 2: Ingesting Routes")
     print("-" * 70)
     script_dir = Path(__file__).parent
@@ -104,21 +104,27 @@ def main():
     print("=" * 70 + "\n")
     
     # Print summary
-    from database.config import SessionLocal
-    from database.models import Airport, Carrier, Route, Flight, FlightInstance, Fare
+    print("Database Summary:")
+    stats = get_database_stats()
     
-    db = SessionLocal()
-    try:
-        print("Database Summary:")
-        print(f"  Airports:         {db.query(Airport).count()}")
-        print(f"  Carriers:         {db.query(Carrier).count()}")
-        print(f"  Routes:           {db.query(Route).count()}")
-        print(f"  Flights:          {db.query(Flight).count()}")
-        print(f"  Flight Instances: {db.query(FlightInstance).count()}")
-        print(f"  Fares:            {db.query(Fare).count()}")
-    finally:
-        db.close()
+    # Print node counts
+    print(f"\nNodes:")
+    print(f"  Airports:         {stats.get('Airport', 0)}")
+    print(f"  Carriers:         {stats.get('Carrier', 0)}")
+    print(f"  Flight Instances: {stats.get('FlightInstance', 0)}")
+    print(f"  Fares:            {stats.get('Fare', 0)}")
     
+    # Print relationship counts
+    print(f"\nRelationships:")
+    print(f"  CONNECTS_TO:      {stats.get('CONNECTS_TO', 0)}")
+    print(f"  DEPARTS_FROM:     {stats.get('DEPARTS_FROM', 0)}")
+    print(f"  ARRIVES_AT:       {stats.get('ARRIVES_AT', 0)}")
+    print(f"  OPERATES:         {stats.get('OPERATES', 0)}")
+    print(f"  HAS_FARE:         {stats.get('HAS_FARE', 0)}")
+    
+    print("\n" + "=" * 70)
+    print("\nMemgraph Lab UI: http://localhost:3000")
+    print("Bolt connection: bolt://localhost:7687")
     print("\n" + "=" * 70 + "\n")
 
 

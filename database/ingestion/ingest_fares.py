@@ -1,18 +1,18 @@
 """
-Ingest fares from flight API JSON files into the database
+Ingest fares from flight API JSON files into Memgraph
+Creates Fare nodes and HAS_FARE relationships to FlightInstance nodes
 """
 
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any, Optional
 from datetime import datetime, date
 import uuid
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from database.config import SessionLocal
-from database.models import Fare, FlightInstance, Flight, Route
+from database.memgraph_config import get_memgraph
 
 
 def parse_fare_key_for_route(fare_key: str) -> Optional[Dict[str, Any]]:
@@ -21,12 +21,6 @@ def parse_fare_key_for_route(fare_key: str) -> Optional[Dict[str, Any]]:
     
     Example fare_key:
     REGULAR__AMD|BLR|1760034600000|1|0|0|ECONOMY|IN||||REGULAR|production_IN_search_amadeus_dom_india_raw_pwd~AMD^DEL^AI^2686:DEL^BLR^AI^2815__AMADEUS__...
-    
-    Parts:
-    - AMD|BLR: origin|destination
-    - 1760034600000: timestamp (milliseconds)
-    - ECONOMY: cabin class
-    - AMD^DEL^AI^2686: leg (origin^dest^carrier^flight_number)
     """
     try:
         parts = fare_key.split('__')
@@ -78,34 +72,6 @@ def parse_fare_key_for_route(fare_key: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def find_flight_instance(
-    db: Any,
-    origin: str,
-    destination: str,
-    carrier: str,
-    flight_number: str,
-    service_date: date
-) -> Optional[FlightInstance]:
-    """
-    Find a flight instance matching the given criteria
-    """
-    instance = (
-        db.query(FlightInstance)
-        .join(Flight, FlightInstance.flight_id == Flight.id)
-        .join(Route, Flight.route_id == Route.id)
-        .filter(
-            Route.source_code == origin,
-            Route.destination_code == destination,
-            Flight.carrier_code == carrier,
-            Flight.flight_number == flight_number,
-            FlightInstance.service_date == service_date
-        )
-        .first()
-    )
-    
-    return instance
-
-
 def extract_fare_from_json(fare_id: str, fare_info: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
     Extract fare information from JSON fare object
@@ -114,7 +80,7 @@ def extract_fare_from_json(fare_id: str, fare_info: Dict[str, Any]) -> Optional[
         pricing = fare_info.get('pricing', {})
         total_pricing = pricing.get('totalPricing', {})
         
-        # Determine refundability
+        # Determine refundability and amenities
         is_refundable = False
         is_partial_refundable = False
         has_free_meal = False
@@ -134,9 +100,8 @@ def extract_fare_from_json(fare_id: str, fare_info: Dict[str, Any]) -> Optional[
         fare_record = {
             'id': str(uuid.uuid4()),
             'fare_key': fare_id,
-            'fare_class': None,  # Not in JSON, could extract from fare_id
-            'fare_brand': fare_info.get('brand'),
-            'fare_category': fare_info.get('fareCategory'),
+            'fare_brand': fare_info.get('brand', ''),
+            'fare_category': fare_info.get('fareCategory', ''),
             
             # Pricing
             'currency': 'INR',
@@ -144,7 +109,7 @@ def extract_fare_from_json(fare_id: str, fare_info: Dict[str, Any]) -> Optional[
             'base_fare': float(total_pricing.get('totalBaseFare', 0)),
             'total_tax': float(total_pricing.get('totalTax', 0)),
             
-            # Baggage (not in JSON, set defaults)
+            # Baggage
             'checkin_baggage_kg': 15 if fare_info.get('checkInBaggageAllowed', False) else 0,
             'cabin_baggage_kg': 7,
             
@@ -155,14 +120,6 @@ def extract_fare_from_json(fare_id: str, fare_info: Dict[str, Any]) -> Optional[
             # Amenities
             'has_free_meal': has_free_meal,
             'has_free_seat': has_free_seat,
-            
-            # Availability
-            'seats_available': None,  # Not in JSON
-            
-            # Validity
-            'valid_from': datetime.utcnow(),
-            'valid_until': None,
-            'created_at': datetime.utcnow(),
         }
         
         return fare_record
@@ -171,9 +128,9 @@ def extract_fare_from_json(fare_id: str, fare_info: Dict[str, Any]) -> Optional[
         return None
 
 
-def ingest_fares_from_file(json_file_path: str, db: Any) -> int:
+def ingest_fares_from_file(json_file_path: str, db) -> int:
     """
-    Ingest fares from a single JSON file
+    Ingest fares from a single JSON file into Memgraph
     
     Returns:
         Number of fares inserted
@@ -189,12 +146,6 @@ def ingest_fares_from_file(json_file_path: str, db: Any) -> int:
     
     for fare_id, fare_info in fares_data.items():
         try:
-            # Check if fare already exists
-            existing_fare = db.query(Fare).filter_by(fare_key=fare_id).first()
-            if existing_fare:
-                skipped_count += 1
-                continue
-            
             # Extract fare record
             fare_record = extract_fare_from_json(fare_id, fare_info)
             if not fare_record:
@@ -203,40 +154,109 @@ def ingest_fares_from_file(json_file_path: str, db: Any) -> int:
             
             # Parse fare key to get route info
             route_info = parse_fare_key_for_route(fare_id)
-            if not route_info:
-                # Create fare without flight_instance_id for now
-                fare = Fare(**fare_record)
-                db.add(fare)
-                inserted_count += 1
-                continue
             
-            # Try to find matching flight instance
-            # For direct flights
-            if len(route_info['legs']) == 1:
+            # Create Fare node
+            if route_info and len(route_info['legs']) == 1:
+                # Try to link to FlightInstance for direct flights
                 leg = route_info['legs'][0]
-                flight_instance = find_flight_instance(
-                    db,
-                    leg['origin'],
-                    leg['destination'],
-                    leg['carrier'],
-                    leg['flight_number'],
-                    route_info['service_date']
+                service_date_str = route_info['service_date'].strftime('%Y-%m-%d')
+                
+                query = """
+                // Check if fare already exists
+                OPTIONAL MATCH (existing:Fare {fare_key: $fare_key})
+                WITH existing
+                WHERE existing IS NULL
+                
+                // Find matching flight instance
+                OPTIONAL MATCH (fi:FlightInstance {
+                    carrier_code: $carrier_code,
+                    flight_number: $flight_number,
+                    origin_code: $origin_code,
+                    dest_code: $dest_code,
+                    service_date: $service_date
+                })
+                
+                // Create Fare node
+                CREATE (f:Fare {
+                    id: $id,
+                    fare_key: $fare_key,
+                    fare_brand: $fare_brand,
+                    fare_category: $fare_category,
+                    currency: $currency,
+                    total_price: $total_price,
+                    base_fare: $base_fare,
+                    total_tax: $total_tax,
+                    checkin_baggage_kg: $checkin_baggage_kg,
+                    cabin_baggage_kg: $cabin_baggage_kg,
+                    is_refundable: $is_refundable,
+                    is_partial_refundable: $is_partial_refundable,
+                    has_free_meal: $has_free_meal,
+                    has_free_seat: $has_free_seat,
+                    created_at: timestamp()
+                })
+                
+                // Create relationship if flight instance found
+                FOREACH (instance IN CASE WHEN fi IS NOT NULL THEN [fi] ELSE [] END |
+                    MERGE (instance)-[:HAS_FARE]->(f)
                 )
                 
-                if flight_instance:
-                    fare_record['flight_instance_id'] = flight_instance.id
-            
-            # Create fare
-            fare = Fare(**fare_record)
-            db.add(fare)
-            inserted_count += 1
+                RETURN f.id as id
+                """
+                
+                results = list(db.execute_and_fetch(query, {
+                    **fare_record,
+                    'carrier_code': leg['carrier'],
+                    'flight_number': leg['flight_number'],
+                    'origin_code': leg['origin'],
+                    'dest_code': leg['destination'],
+                    'service_date': service_date_str
+                }))
+                
+                if results:
+                    inserted_count += 1
+                else:
+                    skipped_count += 1
+            else:
+                # Create fare without flight instance link (multi-leg or unparseable)
+                query = """
+                // Check if fare already exists
+                OPTIONAL MATCH (existing:Fare {fare_key: $fare_key})
+                WITH existing
+                WHERE existing IS NULL
+                
+                CREATE (f:Fare {
+                    id: $id,
+                    fare_key: $fare_key,
+                    fare_brand: $fare_brand,
+                    fare_category: $fare_category,
+                    currency: $currency,
+                    total_price: $total_price,
+                    base_fare: $base_fare,
+                    total_tax: $total_tax,
+                    checkin_baggage_kg: $checkin_baggage_kg,
+                    cabin_baggage_kg: $cabin_baggage_kg,
+                    is_refundable: $is_refundable,
+                    is_partial_refundable: $is_partial_refundable,
+                    has_free_meal: $has_free_meal,
+                    has_free_seat: $has_free_seat,
+                    created_at: timestamp()
+                })
+                
+                RETURN f.id as id
+                """
+                
+                results = list(db.execute_and_fetch(query, fare_record))
+                
+                if results:
+                    inserted_count += 1
+                else:
+                    skipped_count += 1
             
         except Exception as e:
             print(f"Error processing fare {fare_id[:50]}...: {e}")
             skipped_count += 1
             continue
     
-    db.commit()
     print(f"  Inserted: {inserted_count}, Skipped: {skipped_count}")
     
     return inserted_count
@@ -264,15 +284,16 @@ def ingest_all_fares(flights_data_dir: str, limit: Optional[int] = None):
     print(f"\nFound {len(json_files)} JSON files to process")
     print("-" * 70)
     
-    db = SessionLocal()
+    db = get_memgraph()
     total_inserted = 0
     
     try:
         for json_file in json_files:
             inserted = ingest_fares_from_file(str(json_file), db)
             total_inserted += inserted
-    finally:
-        db.close()
+    except Exception as e:
+        print(f"Error during fare ingestion: {e}")
+        raise
     
     print("-" * 70)
     print(f"Total fares inserted: {total_inserted}")
@@ -282,7 +303,7 @@ def main():
     """Main execution function"""
     import argparse
     
-    parser = argparse.ArgumentParser(description='Ingest fares from flight JSON files')
+    parser = argparse.ArgumentParser(description='Ingest fares from flight JSON files into Memgraph')
     parser.add_argument('--data-dir', default='flights-data', 
                        help='Path to flights-data directory')
     parser.add_argument('--limit', type=int, 
@@ -291,7 +312,7 @@ def main():
     
     args = parser.parse_args()
     
-    db = SessionLocal()
+    db = get_memgraph()
     
     try:
         if args.file:
@@ -305,8 +326,9 @@ def main():
             data_dir = project_root / args.data_dir
             
             ingest_all_fares(str(data_dir), limit=args.limit)
-    finally:
-        db.close()
+    except Exception as e:
+        print(f"Error: {e}")
+        raise
 
 
 if __name__ == "__main__":

@@ -1,22 +1,20 @@
 import sys
 from pathlib import Path
-from typing import List, Optional, Tuple
-from datetime import datetime, date, timedelta
-from sqlalchemy.orm import Session, joinedload
+from typing import List, Optional
+from datetime import datetime, date
 import uuid
-import random
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from database.models import FlightInstance, Flight, Airport, Route, Carrier, Fare
+from database.memgraph_config import get_memgraph
 from app.models import FlightLeg, Itinerary, Price
 from app.core.config import settings
 
 
 class FlightSearchService:
     
-    def __init__(self, db: Session):
-        self.db = db
+    def __init__(self):
+        self.db = get_memgraph()
         self.mct_domestic = settings.MINIMUM_CONNECTION_TIME_DOMESTIC
         self.mct_international = settings.MINIMUM_CONNECTION_TIME_INTERNATIONAL
         self.max_layover = settings.MAXIMUM_LAYOVER_TIME
@@ -31,258 +29,253 @@ class FlightSearchService:
         preferred_time_start: Optional[str] = None,
         preferred_time_end: Optional[str] = None
     ) -> List[Itinerary]:
+        """
+        Search for flight itineraries using graph path finding
+        
+        Args:
+            origin: Origin airport code (IATA)
+            destination: Destination airport code (IATA)
+            search_date: Date of travel
+            max_hops: Maximum number of stops (0, 1, or 2)
+            max_results: Maximum results to return
+            preferred_time_start: Preferred departure time start (HH:MM)
+            preferred_time_end: Preferred departure time end (HH:MM)
+        
+        Returns:
+            List of Itinerary objects
+        """
         results = []
+        service_date_str = search_date.strftime('%Y-%m-%d')
         
-        if max_hops >= 0:
-            direct_flights = self._search_direct(origin, destination, search_date)
-            results.extend(direct_flights)
+        # Use graph pattern matching to find paths with up to max_hops+1 edges
+        # Each hop = 1 stop, so 0 hops = 1 edge (direct), 1 hop = 2 edges, 2 hops = 3 edges
+        max_edges = max_hops
+        
+        # Cypher query to find all paths from origin to destination
+        # with flight instances on the service date
+        query = f"""
+        MATCH path = (origin:Airport {{code: $origin}})-[:CONNECTS_TO*1..{max_edges}]->(dest:Airport {{code: $destination}})
+        WITH path, [node in nodes(path) | node.code] as airport_codes
+        WITH airport_codes, reduce(s = '', code IN airport_codes | s + code + '-') as path_id
+        
+        // For each path, find matching flight instances for each leg
+        UNWIND range(0, size(airport_codes)-2) AS i
+        WITH path_id, airport_codes, i, airport_codes[i] as leg_origin, airport_codes[i+1] as leg_dest
+        
+        MATCH (fi:FlightInstance {{
+            service_date: $service_date,
+            origin_code: leg_origin,
+            dest_code: leg_dest
+        }})
+        
+        RETURN DISTINCT 
+            path_id,
+            airport_codes,
+            fi.id as instance_id,
+            fi.carrier_code as carrier,
+            fi.flight_number as flight_number,
+            fi.origin_code as origin,
+            fi.dest_code as destination,
+            fi.departure_time_utc as departure_time,
+            fi.arrival_time_utc as arrival_time,
+            fi.duration_minutes as duration,
+            fi.departure_terminal as dep_terminal,
+            fi.arrival_terminal as arr_terminal,
+            i as leg_index
+        ORDER BY path_id, leg_index, fi.departure_time_utc
+        LIMIT $limit
+        """
+        
+        try:
+            results_data = list(self.db.execute_and_fetch(query, {
+                'origin': origin,
+                'destination': destination,
+                'service_date': service_date_str,
+                'limit': max_results * 10  # Get more to allow for filtering
+            }))
             
-            if len(results) >= max_results:
-                return results[:max_results]
+            if not results_data:
+                # Try a simpler direct flight query
+                results = self._search_direct(origin, destination, search_date, max_results)
+            else:
+                # Group results by path and create itineraries
+                results = self._build_itineraries_from_results(results_data, max_hops)
         
-        if max_hops >= 1:
-            one_stop_flights = self._search_one_stop(origin, destination, search_date)
-            results.extend(one_stop_flights)
-            
-            if len(results) >= max_results:
-                return results[:max_results]
-        
-        if max_hops >= 2:
-            two_stop_flights = self._search_two_stop(origin, destination, search_date)
-            results.extend(two_stop_flights)
-        
-        if preferred_time_start and preferred_time_end:
-            results = self._filter_by_time_window(
-                results, preferred_time_start, preferred_time_end
-            )
-        
-        results = results[:max_results]
-        
-        return results
+        except Exception as e:
+            print(f"Error in graph search: {e}")
+            return []
+
+        return results[:max_results]
     
     def _search_direct(
-        self, origin: str, destination: str, search_date: date
+        self, origin: str, destination: str, search_date: date, limit: int = 50
     ) -> List[Itinerary]:
-        instances = (
-            self.db.query(FlightInstance)
-            .join(Flight, FlightInstance.flight_id == Flight.id)
-            .join(Route, Flight.route_id == Route.id)
-            .filter(
-                Route.source_code == origin,
-                Route.destination_code == destination,
-                FlightInstance.service_date == search_date,
-                FlightInstance.is_active == True
-            )
-            .options(
-                joinedload(FlightInstance.flight).joinedload(Flight.route),
-                joinedload(FlightInstance.flight).joinedload(Flight.carrier)
-            )
-            .order_by(FlightInstance.departure_time_utc)
-            .all()
-        )
+        """
+        Search for direct flights using graph query
+        """
+        service_date_str = search_date.strftime('%Y-%m-%d')
+        
+        query = """
+        MATCH (fi:FlightInstance {
+            origin_code: $origin,
+            dest_code: $destination,
+            service_date: $service_date,
+            is_active: true
+        })
+        MATCH (carrier:Carrier {code: fi.carrier_code})
+        
+        RETURN 
+            fi.id as instance_id,
+            fi.carrier_code as carrier,
+            fi.flight_number as flight_number,
+            fi.origin_code as origin,
+            fi.dest_code as destination,
+            fi.departure_time_utc as departure_time,
+            fi.arrival_time_utc as arrival_time,
+            fi.duration_minutes as duration
+        ORDER BY fi.departure_time_utc
+        LIMIT $limit
+        """
+        
+        results = list(self.db.execute_and_fetch(query, {
+            'origin': origin,
+            'destination': destination,
+            'service_date': service_date_str,
+            'limit': limit
+        }))
         
         itineraries = []
-        for instance in instances:
-            leg = self._create_flight_leg_from_instance(instance)
-            itinerary = self._create_itinerary([leg])
+        for result in results:
+            leg = FlightLeg(
+                carrier=result['carrier'],
+                flight_number=result['flight_number'],
+                origin=result['origin'],
+                destination=result['destination'],
+                departure_time_utc=datetime.fromisoformat(result['departure_time']),
+                arrival_time_utc=datetime.fromisoformat(result['arrival_time']),
+                duration_minutes=result['duration']
+            )
+            
+            itinerary = self._create_itinerary([leg], result['instance_id'])
             itineraries.append(itinerary)
         
         return itineraries
     
-    def _search_one_stop(
-        self, origin: str, destination: str, search_date: date
+    def _build_itineraries_from_results(
+        self, results_data: List[dict], max_hops: int
     ) -> List[Itinerary]:
+        """
+        Build itineraries from query results
+        Groups legs into complete journeys
+        """
+        # Group by path_id and specific flight combination
         from collections import defaultdict
-        from sqlalchemy.orm import aliased
+        paths = defaultdict(lambda: defaultdict(list))
+        
+        for result in results_data:
+            path_id = result.get('path_id', 'unknown')
+            leg_index = result.get('leg_index', 0)
+            paths[path_id][leg_index].append(result)
         
         itineraries = []
         
-        Route1 = aliased(Route)
-        Route2 = aliased(Route)
-        
-        route_pairs = (
-            self.db.query(Route1, Route2)
-            .filter(
-                Route1.source_code == origin,
-                Route2.destination_code == destination,
-                Route1.destination_code == Route2.source_code,
-                Route1.destination_code != origin,
-                Route1.destination_code != destination
-            )
-            .limit(100)
-            .all()
-        )
-        
-        for route1, route2 in route_pairs:
-            instances1 = (
-                self.db.query(FlightInstance)
-                .join(Flight, FlightInstance.flight_id == Flight.id)
-                .filter(
-                    Flight.route_id == route1.id,
-                    FlightInstance.service_date == search_date,
-                    FlightInstance.is_active == True
-                )
-                .options(
-                    joinedload(FlightInstance.flight).joinedload(Flight.carrier)
-                )
-                .order_by(FlightInstance.departure_time_utc)
-                .limit(30)
-                .all()
-            )
+        # For each unique path (e.g., BOM->DEL direct, or BOM->AMD->DEL)
+        for path_id, legs_by_index in paths.items():
+            # Get the expected number of legs for this path
+            if not legs_by_index:
+                continue
             
-            instances2 = (
-                self.db.query(FlightInstance)
-                .join(Flight, FlightInstance.flight_id == Flight.id)
-                .filter(
-                    Flight.route_id == route2.id,
-                    FlightInstance.service_date == search_date,
-                    FlightInstance.is_active == True
-                )
-                .options(
-                    joinedload(FlightInstance.flight).joinedload(Flight.carrier)
-                )
-                .order_by(FlightInstance.departure_time_utc)
-                .all()
-            )
+            expected_legs = max(legs_by_index.keys()) + 1
             
-            for inst1 in instances1:
-                for inst2 in instances2:
-                    if self._is_valid_connection(inst1, inst2):
-                        leg1 = self._create_flight_leg_from_instance(inst1, route1)
-                        leg2 = self._create_flight_leg_from_instance(inst2, route2)
-                        itinerary = self._create_itinerary([leg1, leg2])
-                        itineraries.append(itinerary)
-        
-        return itineraries
-    
-    def _search_two_stop(
-        self, origin: str, destination: str, search_date: date
-    ) -> List[Itinerary]:
-        from sqlalchemy.orm import aliased
-        
-        itineraries = []
-        
-        Route1 = aliased(Route)
-        Route2 = aliased(Route)
-        Route3 = aliased(Route)
-        
-        route_triplets = (
-            self.db.query(Route1, Route2, Route3)
-            .filter(
-                Route1.source_code == origin,
-                Route3.destination_code == destination,
-                Route1.destination_code == Route2.source_code,
-                Route2.destination_code == Route3.source_code,
-                Route1.destination_code != origin,
-                Route1.destination_code != destination,
-                Route2.destination_code != origin,
-                Route2.destination_code != destination,
-                Route1.destination_code != Route2.destination_code
-            )
-            .limit(50)
-            .all()
-        )
-        
-        for route1, route2, route3 in route_triplets:
-            instances1 = (
-                self.db.query(FlightInstance)
-                .join(Flight, FlightInstance.flight_id == Flight.id)
-                .filter(
-                    Flight.route_id == route1.id,
-                    FlightInstance.service_date == search_date,
-                    FlightInstance.is_active == True
-                )
-                .options(joinedload(FlightInstance.flight).joinedload(Flight.carrier))
-                .order_by(FlightInstance.departure_time_utc)
-                .limit(10)
-                .all()
-            )
-            
-            instances2 = (
-                self.db.query(FlightInstance)
-                .join(Flight, FlightInstance.flight_id == Flight.id)
-                .filter(
-                    Flight.route_id == route2.id,
-                    FlightInstance.service_date == search_date,
-                    FlightInstance.is_active == True
-                )
-                .options(joinedload(FlightInstance.flight).joinedload(Flight.carrier))
-                .order_by(FlightInstance.departure_time_utc)
-                .limit(10)
-                .all()
-            )
-            
-            instances3 = (
-                self.db.query(FlightInstance)
-                .join(Flight, FlightInstance.flight_id == Flight.id)
-                .filter(
-                    Flight.route_id == route3.id,
-                    FlightInstance.service_date == search_date,
-                    FlightInstance.is_active == True
-                )
-                .options(joinedload(FlightInstance.flight).joinedload(Flight.carrier))
-                .order_by(FlightInstance.departure_time_utc)
-                .all()
-            )
-            
-            for inst1 in instances1:
-                for inst2 in instances2:
-                    if not self._is_valid_connection(inst1, inst2):
-                        continue
+            # Generate all combinations of flights for this path
+            # For direct flights (1 leg), just return each option
+            # For multi-leg, we need to generate valid combinations
+            if expected_legs == 1:
+                # Direct flights - create one itinerary per flight option
+                for flight_data in legs_by_index[0]:
+                    leg = FlightLeg(
+                        carrier=flight_data['carrier'],
+                        flight_number=flight_data['flight_number'],
+                        origin=flight_data['origin'],
+                        destination=flight_data['destination'],
+                        departure_time_utc=datetime.fromisoformat(flight_data['departure_time']),
+                        arrival_time_utc=datetime.fromisoformat(flight_data['arrival_time']),
+                        duration_minutes=flight_data['duration']
+                    )
                     
-                    for inst3 in instances3:
-                        if self._is_valid_connection(inst2, inst3):
-                            leg1 = self._create_flight_leg_from_instance(inst1, route1)
-                            leg2 = self._create_flight_leg_from_instance(inst2, route2)
-                            leg3 = self._create_flight_leg_from_instance(inst3, route3)
-                            itinerary = self._create_itinerary([leg1, leg2, leg3])
-                            itineraries.append(itinerary)
+                    itinerary = self._create_itinerary([leg], flight_data['instance_id'])
+                    itineraries.append(itinerary)
+            else:
+                # Multi-leg journey - create combinations
+                # This is simplified - in production you'd want to validate connection times
+                self._create_multi_leg_itineraries(legs_by_index, expected_legs, itineraries)
         
         return itineraries
     
-    def _is_valid_connection(
-        self, arriving_flight: FlightInstance, departing_flight: FlightInstance
-    ) -> bool:
-        connection_time = (
-            departing_flight.departure_time_utc - arriving_flight.arrival_time_utc
-        ).total_seconds() / 60
+    def _create_multi_leg_itineraries(
+        self, legs_by_index: dict, expected_legs: int, itineraries: List[Itinerary]
+    ):
+        """
+        Create itineraries for multi-leg journeys with connection time validation
+        """
+        import itertools
         
-        mct = self.mct_domestic
+        # Get all flight options for each leg
+        leg_options = []
+        for i in range(expected_legs):
+            if i in legs_by_index:
+                leg_options.append(legs_by_index[i])
+            else:
+                return  # Missing leg, can't build complete itinerary
         
-        if connection_time < mct:
-            return False
-        
-        if connection_time > self.max_layover:
-            return False
-        
-        return True
+        # Generate all combinations
+        for combination in itertools.product(*leg_options):
+            flight_legs = []
+            valid = True
+            
+            for i, leg_data in enumerate(combination):
+                leg = FlightLeg(
+                    carrier=leg_data['carrier'],
+                    flight_number=leg_data['flight_number'],
+                    origin=leg_data['origin'],
+                    destination=leg_data['destination'],
+                    departure_time_utc=datetime.fromisoformat(leg_data['departure_time']),
+                    arrival_time_utc=datetime.fromisoformat(leg_data['arrival_time']),
+                    duration_minutes=leg_data['duration']
+                )
+                flight_legs.append(leg)
+                
+                # Validate connection time for subsequent legs
+                if i > 0:
+                    prev_leg = flight_legs[i-1]
+                    connection_time = (leg.departure_time_utc - prev_leg.arrival_time_utc).total_seconds() / 60
+                    
+                    # Check minimum and maximum connection time
+                    if connection_time < self.mct_domestic or connection_time > self.max_layover:
+                        valid = False
+                        break
+            
+            if valid and flight_legs:
+                instance_id = combination[0]['instance_id'] if combination else None
+                itinerary = self._create_itinerary(flight_legs, instance_id)
+                itineraries.append(itinerary)
     
-    def _create_flight_leg_from_instance(
-        self, instance: FlightInstance, route: Optional[Route] = None
-    ) -> FlightLeg:
-        if route is None:
-            route = instance.flight.route
-        
-        return FlightLeg(
-            carrier=instance.flight.carrier_code,
-            flight_number=instance.flight.flight_number,
-            origin=route.source_code,
-            destination=route.destination_code,
-            departure_time_utc=instance.departure_time_utc,
-            arrival_time_utc=instance.arrival_time_utc,
-            duration_minutes=instance.duration_minutes
-        )
-    
-    def _create_itinerary(self, legs: List[FlightLeg]) -> Itinerary:
+    def _create_itinerary(
+        self, legs: List[FlightLeg], primary_instance_id: Optional[str] = None
+    ) -> Itinerary:
+        """
+        Create an Itinerary object from flight legs
+        """
         first_departure = legs[0].departure_time_utc
         last_arrival = legs[-1].arrival_time_utc
         total_duration = int((last_arrival - first_departure).total_seconds() / 60)
         
         # Try to get real fare from database
-        total_price = self._get_fare_for_itinerary(legs)
+        total_price = self._get_fare_for_legs(legs, primary_instance_id)
         
-        # Fallback to random price if no fare found
+        # Fallback to estimated price if no fare found
         if total_price is None:
+            import random
             base_price = random.uniform(3000, 15000)
             num_legs = len(legs)
             price_multiplier = 1.0 + (num_legs - 1) * 0.3
@@ -300,63 +293,62 @@ class FlightSearchService:
             fare_key=fare_key
         )
     
-    def _get_fare_for_itinerary(self, legs: List[FlightLeg]) -> Optional[float]:
+    def _get_fare_for_legs(
+        self, legs: List[FlightLeg], primary_instance_id: Optional[str] = None
+    ) -> Optional[float]:
         """
-        Attempt to get real fare from database for the itinerary
-        For direct flights, looks up fare by flight instance
-        For multi-leg, estimates based on individual leg fares
+        Get fare for flight legs from Memgraph
         """
         try:
-            if len(legs) == 1:
+            if len(legs) == 1 and primary_instance_id:
                 # Direct flight - look up exact fare
-                leg = legs[0]
-                fare = (
-                    self.db.query(Fare)
-                    .join(FlightInstance, Fare.flight_instance_id == FlightInstance.id)
-                    .join(Flight, FlightInstance.flight_id == Flight.id)
-                    .join(Route, Flight.route_id == Route.id)
-                    .filter(
-                        Route.source_code == leg.origin,
-                        Route.destination_code == leg.destination,
-                        Flight.carrier_code == leg.carrier,
-                        Flight.flight_number == leg.flight_number,
-                        FlightInstance.departure_time_utc == leg.departure_time_utc
-                    )
-                    .order_by(Fare.total_price.asc())
-                    .first()
-                )
+                query = """
+                MATCH (fi:FlightInstance {id: $instance_id})-[:HAS_FARE]->(f:Fare)
+                RETURN f.total_price as price
+                ORDER BY f.total_price ASC
+                LIMIT 1
+                """
                 
-                if fare:
-                    return float(fare.total_price)
+                results = list(self.db.execute_and_fetch(query, {
+                    'instance_id': primary_instance_id
+                }))
+                
+                if results:
+                    return float(results[0]['price'])
             else:
                 # Multi-leg - sum individual leg fares if available
                 total = 0
-                all_fares_found = True
+                all_found = True
                 
                 for leg in legs:
-                    fare = (
-                        self.db.query(Fare)
-                        .join(FlightInstance, Fare.flight_instance_id == FlightInstance.id)
-                        .join(Flight, FlightInstance.flight_id == Flight.id)
-                        .join(Route, Flight.route_id == Route.id)
-                        .filter(
-                            Route.source_code == leg.origin,
-                            Route.destination_code == leg.destination,
-                            Flight.carrier_code == leg.carrier,
-                            Flight.flight_number == leg.flight_number,
-                            FlightInstance.departure_time_utc == leg.departure_time_utc
-                        )
-                        .order_by(Fare.total_price.asc())
-                        .first()
-                    )
+                    query = """
+                    MATCH (fi:FlightInstance {
+                        carrier_code: $carrier,
+                        flight_number: $flight_number,
+                        origin_code: $origin,
+                        dest_code: $destination,
+                        departure_time_utc: $departure_time
+                    })-[:HAS_FARE]->(f:Fare)
+                    RETURN f.total_price as price
+                    ORDER BY f.total_price ASC
+                    LIMIT 1
+                    """
                     
-                    if fare:
-                        total += float(fare.total_price)
+                    results = list(self.db.execute_and_fetch(query, {
+                        'carrier': leg.carrier,
+                        'flight_number': leg.flight_number,
+                        'origin': leg.origin,
+                        'destination': leg.destination,
+                        'departure_time': leg.departure_time_utc.isoformat()
+                    }))
+                    
+                    if results:
+                        total += float(results[0]['price'])
                     else:
-                        all_fares_found = False
+                        all_found = False
                         break
                 
-                if all_fares_found:
+                if all_found:
                     return total
         
         except Exception as e:
@@ -370,6 +362,9 @@ class FlightSearchService:
         start_time: str,
         end_time: str
     ) -> List[Itinerary]:
+        """
+        Filter itineraries by departure time window
+        """
         start_hour, start_min = map(int, start_time.split(':'))
         end_hour, end_min = map(int, end_time.split(':'))
         

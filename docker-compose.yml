@@ -1,4 +1,37 @@
 services:
+  memgraph:
+    image: memgraph/memgraph:latest
+    container_name: flight-search-memgraph
+    ports:
+      - "7687:7687"  # Bolt protocol port
+      - "7444:7444"  # Monitoring port
+    volumes:
+      - memgraph-data:/var/lib/memgraph
+    networks:
+      - flight-search-network
+    restart: unless-stopped
+    command: ["--also-log-to-stderr"]
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'RETURN 1;' | mgconsole --host localhost --port 7687 --username '' --password '' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  memgraph-lab:
+    image: memgraph/lab:latest
+    container_name: flight-search-memgraph-lab
+    ports:
+      - "3000:3000"
+    environment:
+      - QUICK_CONNECT_MG_HOST=memgraph
+      - QUICK_CONNECT_MG_PORT=7687
+    depends_on:
+      - memgraph
+    networks:
+      - flight-search-network
+    restart: unless-stopped
+
   backend:
     build:
       context: .
@@ -7,15 +40,21 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=sqlite:///flight_search.db
+      - MEMGRAPH_HOST=memgraph
+      - MEMGRAPH_PORT=7687
+      - MEMGRAPH_USER=
+      - MEMGRAPH_PASSWORD=
       - PYTHONUNBUFFERED=1
     volumes:
-      # Mount database file to persist data
-      - ./flight_search.db:/app/flight_search.db
       # Optional: mount app code for development (hot reload)
       # - ./app:/app/app
+      - ./database:/app/database
+      - ./flights-data:/app/flights-data
     networks:
       - flight-search-network
+    depends_on:
+      memgraph:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -30,7 +69,7 @@ services:
       dockerfile: Dockerfile.frontend
     container_name: flight-search-frontend
     ports:
-      - "3000:80"
+      - "3001:80"  # Changed to 3001 as Memgraph Lab uses 3000
     depends_on:
       - backend
     networks:
@@ -48,5 +87,5 @@ networks:
     driver: bridge
 
 volumes:
-  flight-search-db:
+  memgraph-data:
     driver: local

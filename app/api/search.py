@@ -1,18 +1,17 @@
 """
 Flight Search API endpoints
 Implements the API contract from tech spec
+Uses Memgraph graph database for all flight search operations
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from typing import List
 import uuid
 
 from app.models import (
     SearchRequest, SearchResponse, SearchMetadata, ErrorResponse
 )
-from app.core import get_db, settings
-from app.services import FlightSearchService
+from app.services.search_service import FlightSearchService
 
 router = APIRouter(prefix="/search", tags=["search"])
 
@@ -30,8 +29,7 @@ router = APIRouter(prefix="/search", tags=["search"])
     description="Search for flight itineraries between origin and destination with up to 2 hops"
 )
 async def search_flights(
-    request: SearchRequest,
-    db: Session = Depends(get_db)
+    request: SearchRequest
 ) -> SearchResponse:
     """
     Search for flights based on criteria
@@ -50,7 +48,7 @@ async def search_flights(
     """
     try:
         # Initialize search service
-        search_service = FlightSearchService(db)
+        search_service = FlightSearchService()
         
         # Extract time window if provided
         time_start = None

@@ -1,11 +1,14 @@
 # Flight Search System - Database Requirements
 
-# Core dependencies
-sqlalchemy>=2.0.0
+# Core dependencies - Memgraph
+gqlalchemy>=1.4.0
 pytz>=2023.3
 
-# Optional but recommended
+# Legacy SQL support (for migration period)
+sqlalchemy>=2.0.0
 psycopg2-binary>=2.9.0  # For PostgreSQL
+
+# Optional but recommended
 python-dotenv>=1.0.0     # For environment variables
 
 # Development dependencies

@@ -1,5 +1,6 @@
 """
 Configuration settings for the application
+Uses Memgraph graph database for all flight search operations
 """
 
 from pydantic_settings import BaseSettings
@@ -15,7 +16,11 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
     
-    # Database
+    MEMGRAPH_HOST: str = os.getenv('MEMGRAPH_HOST', 'localhost')
+    MEMGRAPH_PORT: int = int(os.getenv('MEMGRAPH_PORT', '7687'))
+    MEMGRAPH_USER: str = os.getenv('MEMGRAPH_USER', '')
+    MEMGRAPH_PASSWORD: str = os.getenv('MEMGRAPH_PASSWORD', '')
+    
     DATABASE_URL: str = os.getenv('DATABASE_URL', 'sqlite:///flight_search.db')
     
     # API settings
@@ -34,6 +39,7 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: list = [
         "http://localhost:3000",
+        "http://localhost:3001",  # Updated for Memgraph Lab on 3000
         "http://localhost:8000",
     ]
     
