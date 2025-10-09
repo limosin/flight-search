@@ -61,6 +61,8 @@ class Route(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     source_code = Column(String(3), ForeignKey('airports.code'), nullable=False)
     destination_code = Column(String(3), ForeignKey('airports.code'), nullable=False)
+    # Approximate average duration for this route (in minutes). Populated by maintenance script.
+    average_duration_minutes = Column(Float, nullable=True, index=True)
     
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
