@@ -5,6 +5,7 @@ from typing import List
 from datetime import date
 
 from sqlalchemy.orm import Session, aliased
+from sqlalchemy import func
 
 from database.models import Route
 from app.models import Itinerary
@@ -101,7 +102,14 @@ class OneStopFlightSearch:
         """
         Route1 = aliased(Route)
         Route2 = aliased(Route)
-        
+        # Prefer route pairs with lower summed average_duration_minutes.
+        # Treat NULL durations as a large value so known durations are preferred.
+        large_value = 10_000.0
+        total_duration_expr = (
+            func.coalesce(Route1.average_duration_minutes, large_value) +
+            func.coalesce(Route2.average_duration_minutes, large_value)
+        )
+
         route_pairs = (
             self.db.query(Route1, Route2)
             .filter(
@@ -111,7 +119,8 @@ class OneStopFlightSearch:
                 Route1.destination_code != origin,
                 Route1.destination_code != destination
             )
-            .limit(100)
+            .order_by(total_duration_expr.asc())
+            .limit(30)
             .all()
         )
         
@@ -131,16 +140,10 @@ class OneStopFlightSearch:
         itineraries = []
         
         for route1, route2 in route_pairs:
-            if len(itineraries) >= max_results:
-                break
-            
             instances1 = instances_by_route1.get(route1.id, [])
             instances2 = instances_by_route2.get(route2.id, [])
             
             for inst1 in instances1:
-                if len(itineraries) >= max_results:
-                    break
-                
                 for inst2 in instances2:
                     if is_valid_connection(
                         inst1, inst2,
@@ -151,8 +154,5 @@ class OneStopFlightSearch:
                         leg2 = create_flight_leg_from_instance(inst2, route2)
                         itinerary = self.itinerary_builder.build([leg1, leg2])
                         itineraries.append(itinerary)
-                        
-                        if len(itineraries) >= max_results:
-                            break
-        
+
         return itineraries

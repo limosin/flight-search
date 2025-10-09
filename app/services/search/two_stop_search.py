@@ -5,6 +5,7 @@ from typing import List
 from datetime import date
 
 from sqlalchemy.orm import Session, aliased
+from sqlalchemy import func
 
 from database.models import Route
 from app.models import Itinerary
@@ -121,7 +122,15 @@ class TwoStopFlightSearch:
         Route1 = aliased(Route)
         Route2 = aliased(Route)
         Route3 = aliased(Route)
-        
+        # Prefer triplets with lower summed average_duration_minutes.
+        # Treat NULL durations as a large value so known durations are preferred.
+        large_value = 10_000.0
+        total_duration_expr = (
+            func.coalesce(Route1.average_duration_minutes, large_value) +
+            func.coalesce(Route2.average_duration_minutes, large_value) +
+            func.coalesce(Route3.average_duration_minutes, large_value)
+        )
+
         route_triplets = (
             self.db.query(Route1, Route2, Route3)
             .filter(
@@ -135,6 +144,7 @@ class TwoStopFlightSearch:
                 Route2.destination_code != destination,
                 Route1.destination_code != Route2.destination_code
             )
+            .order_by(total_duration_expr.asc())
             .limit(50)
             .all()
         )
@@ -156,17 +166,12 @@ class TwoStopFlightSearch:
         itineraries = []
         
         for route1, route2, route3 in route_triplets:
-            if len(itineraries) >= max_results:
-                break
             
             instances1 = instances_by_route1.get(route1.id, [])
             instances2 = instances_by_route2.get(route2.id, [])
             instances3 = instances_by_route3.get(route3.id, [])
             
             for inst1 in instances1:
-                if len(itineraries) >= max_results:
-                    break
-                
                 for inst2 in instances2:
                     if not is_valid_connection(
                         inst1, inst2,
@@ -174,9 +179,6 @@ class TwoStopFlightSearch:
                         self.max_layover
                     ):
                         continue
-                    
-                    if len(itineraries) >= max_results:
-                        break
                     
                     for inst3 in instances3:
                         if is_valid_connection(
@@ -189,8 +191,5 @@ class TwoStopFlightSearch:
                             leg3 = create_flight_leg_from_instance(inst3, route3)
                             itinerary = self.itinerary_builder.build([leg1, leg2, leg3])
                             itineraries.append(itinerary)
-                            
-                            if len(itineraries) >= max_results:
-                                break
         
         return itineraries
