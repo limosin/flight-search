@@ -27,7 +27,6 @@ def compute_and_update(dry_run: bool = False):
         print(f"Found average durations for {len(updates)} routes")
 
         for route_id, avg in updates.items():
-            print(f"Route {route_id}: avg duration = {avg:.2f} minutes")
             if not dry_run:
                 db.query(Route).filter(Route.id == route_id).update({
                     'average_duration_minutes': float(avg)

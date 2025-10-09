@@ -7,6 +7,7 @@ from .helpers import (
     is_valid_connection,
     create_flight_leg_from_instance,
     index_instances_by_route,
+    conecting_exceeds_max_layover
 )
 
 __all__ = [
@@ -17,5 +18,7 @@ __all__ = [
     'fetch_flight_instances_bulk',
     'is_valid_connection',
     'create_flight_leg_from_instance',
+    'index_instances_by_route',
+    'conecting_exceeds_max_layover'
 ]
 

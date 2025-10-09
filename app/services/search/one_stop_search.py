@@ -13,7 +13,8 @@ from .helpers import (
     fetch_flight_instances_bulk,
     is_valid_connection,
     create_flight_leg_from_instance,
-    index_instances_by_route
+    index_instances_by_route,
+    conecting_exceeds_max_layover
 )
 
 
@@ -120,7 +121,6 @@ class OneStopFlightSearch:
                 Route1.destination_code != destination
             )
             .order_by(total_duration_expr.asc())
-            .limit(30)
             .all()
         )
         
@@ -145,6 +145,9 @@ class OneStopFlightSearch:
             
             for inst1 in instances1:
                 for inst2 in instances2:
+                    if conecting_exceeds_max_layover(inst1, inst2, self.max_layover):
+                        break  # Further instances will only have longer layovers
+
                     if is_valid_connection(
                         inst1, inst2,
                         self.mct_domestic,

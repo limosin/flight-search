@@ -92,7 +92,7 @@ async def search_flights(
             search_id=search_id,
             origin=request.origin,
             destination=request.destination,
-            itineraries=itineraries,
+            itineraries=itineraries[:min(request.max_results, len(itineraries))],
             meta=SearchMetadata(
                 returned=len(itineraries),
                 max_results=request.max_results

@@ -7,7 +7,7 @@ from collections import defaultdict
 
 from database.models import FlightInstance, Flight, Route
 from app.models import FlightLeg, Itinerary, Price
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, subqueryload
 
 
 def fetch_flight_instances_bulk(
@@ -40,7 +40,9 @@ def fetch_flight_instances_bulk(
             FlightInstance.is_active == True
         )
         .options(
-            joinedload(FlightInstance.flight).joinedload(Flight.carrier)
+            joinedload(FlightInstance.flight).joinedload(Flight.carrier),
+            joinedload(FlightInstance.flight).joinedload(Flight.route),
+            subqueryload(FlightInstance.fares)
         )
         .order_by(FlightInstance.departure_time_utc)
     )
@@ -80,6 +82,30 @@ def is_valid_connection(
         return False
     
     return True
+
+def conecting_exceeds_max_layover(
+    arriving_flight: FlightInstance,
+    departing_flight: FlightInstance,
+    max_layover: int
+) -> bool:
+    """
+    Check if the layover between two flights exceeds the maximum allowed layover time.
+    
+    Args:
+        arriving_flight: The arriving flight instance
+        departing_flight: The departing flight instance
+        max_layover: Maximum layover time in minutes
+    Returns:
+        True if layover exceeds max_layover, False otherwise
+    """
+    connection_time = (
+        departing_flight.departure_time_utc - arriving_flight.arrival_time_utc
+    ).total_seconds() / 60
+    
+    if connection_time > max_layover:
+        return True
+    
+    return False
 
 
 def create_flight_leg_from_instance(

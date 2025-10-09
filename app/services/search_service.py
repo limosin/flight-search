@@ -54,7 +54,7 @@ class FlightSearchService:
         max_hops: int = 2,
         max_results: int = 50
     ) -> List[Itinerary]:
-    
+
         results = []
         
         # Step 1: Search direct flights (0 hops)
@@ -66,7 +66,7 @@ class FlightSearchService:
             
             # Early termination: Direct flights are preferred
             if len(results) >= max_results:
-                return results[:max_results]
+                return results
         
         # Step 2: Search 1-stop flights only if we need more results
         if max_hops >= 1 and len(results) < max_results:
@@ -78,7 +78,7 @@ class FlightSearchService:
             
             # Early termination after 1-stop if we have enough
             if len(results) >= max_results:
-                return results[:max_results]
+                return results
         
         # Step 3: Search 2-stop flights only if we still need more results
         if max_hops >= 2 and len(results) < max_results:
@@ -88,6 +88,6 @@ class FlightSearchService:
             )
             results.extend(two_stop_flights)
         
-        return results[:max_results]
+        return results
 
 
