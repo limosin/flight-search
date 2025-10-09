@@ -1,6 +1,7 @@
 """
 Helper utilities for flight search operations
 """
+import random
 from typing import Tuple, List, Optional
 from datetime import datetime, timedelta
 from collections import defaultdict
@@ -124,6 +125,11 @@ def create_flight_leg_from_instance(
     """
     if route is None:
         route = instance.flight.route
+
+    if instance.fares:
+        total_fare = instance.fares[0].total_price
+    else:
+        total_fare = random.uniform(3000, 15000)
     
     return FlightLeg(
         carrier=instance.flight.carrier_code,
@@ -132,7 +138,8 @@ def create_flight_leg_from_instance(
         destination=route.destination_code,
         departure_time_utc=instance.departure_time_utc,
         arrival_time_utc=instance.arrival_time_utc,
-        duration_minutes=instance.duration_minutes
+        duration_minutes=instance.duration_minutes,
+        fare=total_fare,
     )
 
 

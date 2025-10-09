@@ -68,6 +68,7 @@ class FlightLeg(BaseModel):
     departure_time_utc: datetime = Field(..., description="Departure time in UTC")
     arrival_time_utc: datetime = Field(..., description="Arrival time in UTC")
     duration_minutes: int = Field(..., description="Flight duration in minutes")
+    fare: float = Field(..., description="List of fare classes available on this leg")
 
 
 class Price(BaseModel):

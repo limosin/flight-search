@@ -34,8 +34,8 @@ class ItineraryBuilder:
         last_arrival = legs[-1].arrival_time_utc
         total_duration = int((last_arrival - first_departure).total_seconds() / 60)
 
-        total_price = self._estimate_price(legs)
-        
+        total_price = sum([leg.fare for leg in legs if leg.fare])
+
         itinerary_id = str(uuid.uuid4())
         fare_key = self._generate_fare_key(legs, itinerary_id)
         
