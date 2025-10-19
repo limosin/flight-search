@@ -18,8 +18,8 @@ INTER_NEW_ROUTES=(
     "PNQ JAI"
 )
 
-DATE="10/10/2025"
-DATE_FILENAME="20251010"
+DATE="11/10/2025"
+DATE_FILENAME="20251011"
 
 echo "==================================================="
 echo "EXTENDED FLIGHT DATA DOWNLOAD"

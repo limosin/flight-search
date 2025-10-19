@@ -52,22 +52,13 @@ async def search_flights(
         # Initialize search service
         search_service = FlightSearchService(db)
         
-        # Extract time window if provided
-        time_start = None
-        time_end = None
-        if request.preferred_departure_time_window:
-            time_start = request.preferred_departure_time_window.start
-            time_end = request.preferred_departure_time_window.end
-        
         # Perform search
         itineraries = search_service.search(
             origin=request.origin,
             destination=request.destination,
             search_date=request.date,
             max_hops=request.max_hops,
-            max_results=request.max_results,
-            preferred_time_start=time_start,
-            preferred_time_end=time_end
+            max_results=request.max_results
         )
         
         # Sort results
@@ -101,7 +92,7 @@ async def search_flights(
             search_id=search_id,
             origin=request.origin,
             destination=request.destination,
-            itineraries=itineraries,
+            itineraries=itineraries[:min(request.max_results, len(itineraries))],
             meta=SearchMetadata(
                 returned=len(itineraries),
                 max_results=request.max_results

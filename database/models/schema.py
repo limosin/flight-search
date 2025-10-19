@@ -61,6 +61,8 @@ class Route(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     source_code = Column(String(3), ForeignKey('airports.code'), nullable=False)
     destination_code = Column(String(3), ForeignKey('airports.code'), nullable=False)
+    # Approximate average duration for this route (in minutes). Populated by maintenance script.
+    average_duration_minutes = Column(Float, nullable=True, index=True)
     
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -72,8 +74,7 @@ class Route(Base):
     # Unique constraint for source-destination pair
     __table_args__ = (
         UniqueConstraint('source_code', 'destination_code', name='uq_route_source_dest'),
-        Index('idx_route_source', 'source_code'),
-        Index('idx_route_destination', 'destination_code'),
+        Index('idx_route_source_destination', 'source_code', 'destination_code'),
     )
     
     def __repr__(self):
@@ -146,6 +147,12 @@ class FlightInstance(Base):
     
     # Relationships
     flight = relationship("Flight")
+    fares = relationship(
+        "Fare",
+        back_populates="flight_instance",
+        cascade="all, delete-orphan",
+        lazy="select"
+    )
     
     # Indexes for search operations
     # Note: We'll join with flight -> route to get source/destination
@@ -166,7 +173,7 @@ class Fare(Base):
     __tablename__ = 'fares'
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    flight_instance_id = Column(String(36), ForeignKey('flight_instances.id'), nullable=False)
+    flight_instance_id = Column(String(36), ForeignKey('flight_instances.id'), nullable=True)
     
     # Fare identification
     fare_key = Column(String(500), unique=True, nullable=False, index=True)  # Opaque key for detailed fare lookup
@@ -202,7 +209,11 @@ class Fare(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    flight_instance = relationship("FlightInstance")
+    flight_instance = relationship(
+        "FlightInstance",
+        back_populates="fares",
+        lazy="joined"
+    )
     
     __table_args__ = (
         Index('idx_fare_flight_instance', 'flight_instance_id'),

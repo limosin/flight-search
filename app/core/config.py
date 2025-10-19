@@ -24,7 +24,6 @@ class Settings(BaseSettings):
     # Search settings
     DEFAULT_MAX_HOPS: int = 2
     DEFAULT_MAX_RESULTS: int = 50
-    MAX_RESULTS_LIMIT: int = 100
     
     # Connection time rules (in minutes)
     MINIMUM_CONNECTION_TIME_DOMESTIC: int = 45

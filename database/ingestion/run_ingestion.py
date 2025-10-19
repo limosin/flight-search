@@ -12,6 +12,10 @@ from database.config import init_db, reset_db
 from database.ingestion.ingest_reference_data import ingest_airports, ingest_carriers
 from database.ingestion.ingest_routes import ingest_routes
 from database.ingestion.ingest_flights import ingest_all_flights
+from database.ingestion.ingest_fares import ingest_all_fares
+from database.config import SessionLocal
+from database.models import Airport, Carrier, Route, Flight, FlightInstance, Fare
+from database.update_route_durations import compute_and_update as update_route_durations
 
 
 def main():
@@ -22,8 +26,6 @@ def main():
     
     parser = argparse.ArgumentParser(description='Run complete data ingestion pipeline')
     parser.add_argument('--reset', action='store_true', help='Reset database before ingestion')
-    parser.add_argument('--limit', type=int, help='Limit number of flight files to process (for testing)')
-    parser.add_argument('--skip-flights', action='store_true', help='Skip flight data ingestion')
     args = parser.parse_args()
     
     print("\n" + "=" * 70)
@@ -68,26 +70,35 @@ def main():
     print("\n" + "-" * 70)
     
     # Step 3: Ingest flight data
-    if not args.skip_flights:
-        print("\nSTEP 3: Ingesting Flight Data")
-        print("-" * 70)
-        flights_data_dir = project_root / 'flights-data'
-        
-        if flights_data_dir.exists():
-            ingest_all_flights(str(flights_data_dir), limit=args.limit)
-        else:
-            print(f"⚠️  Flight data directory not found at {flights_data_dir}")
+    print("\nSTEP 3: Ingesting Flight Data")
+    print("-" * 70)
+    flights_data_dir = project_root / 'flights-data'
+    
+    if flights_data_dir.exists():
+        ingest_all_flights(str(flights_data_dir))
     else:
-        print("\nSTEP 3: Skipping Flight Data Ingestion")
-        print("-" * 70)
+        print(f"⚠️  Flight data directory not found at {flights_data_dir}")
+    
+    print("\n" + "-" * 70)
+    
+    # Step 4: Ingest fare data
+    print("\nSTEP 4: Ingesting Fare Data")
+    print("-" * 70)
+    flights_data_dir = project_root / 'flights-data'
+    
+    if flights_data_dir.exists():
+        ingest_all_fares(str(flights_data_dir))
+    else:
+        print(f"⚠️  Flight data directory not found at {flights_data_dir}")
+
+    print("\nSTEP 5: Computing and updating average route durations for routes")
+    print("-" * 70)
+    update_route_durations()
     
     print("\n" + "=" * 70)
     print(" " * 20 + "INGESTION COMPLETED SUCCESSFULLY")
     print("=" * 70 + "\n")
-    
-    # Print summary
-    from database.config import SessionLocal
-    from database.models import Airport, Carrier, Route, Flight, FlightInstance
+
     
     db = SessionLocal()
     try:
@@ -97,6 +108,7 @@ def main():
         print(f"  Routes:           {db.query(Route).count()}")
         print(f"  Flights:          {db.query(Flight).count()}")
         print(f"  Flight Instances: {db.query(FlightInstance).count()}")
+        print(f"  Fares:            {db.query(Fare).count()}")
     finally:
         db.close()
     
